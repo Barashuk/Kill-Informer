@@ -1,5 +1,5 @@
 #include "plugin.h"
-
+#include "imgui.h"
 using namespace plugin;
 
 class KillInformer {
@@ -20,7 +20,6 @@ public:
 
     }
     KillInformer() {
-        
         Events::d3dLostEvent += OnLost;
         Events::d3dResetEvent += OnReset;
         Events::drawingEvent += OnDraw;
