@@ -23,6 +23,9 @@
     <ClCompile Include="..\imgui\backends\imgui_impl_win32.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
+    <ClCompile Include="..\imgui\misc\cpp\imgui_stdlib.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="imgui">
@@ -58,5 +61,8 @@
       <Filter>imgui</Filter>
     </ClInclude>
     <ClInclude Include="KeyCombo.hpp" />
+    <ClInclude Include="..\imgui\misc\cpp\imgui_stdlib.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

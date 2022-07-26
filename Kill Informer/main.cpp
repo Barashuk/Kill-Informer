@@ -1,5 +1,7 @@
 #ifndef main_cpp
 #define main_cpp
+#include <string>
+
 #include "plugin.h"
 #include <imgui.h>
 #include <backends/imgui_impl_dx9.h>
@@ -8,11 +10,8 @@
 
 #include <sampapi/CChat.h>
 namespace r1 = SAMPAPI_NAMESPACE::v037r1;
-
-
-
 using namespace plugin;
-//namespace r1 = SAMPAPI_NAMESPACE::v037r1;
+
 static WNDPROC  hOrigProcImGui = nullptr;
 static HWND     hMain = NULL;
 
@@ -25,6 +24,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	return CallWindowProc(hOrigProcImGui, hWnd, msg, wParam, lParam);
 }
 
+key_ptr_t combo = nullptr;
 
 class CMain {
 
@@ -49,20 +49,31 @@ public:
 		ImGui_ImplWin32_Init(hMain);
 		ImGui_ImplDX9_Init(reinterpret_cast<IDirect3DDevice9*>(RwD3D9GetCurrentD3DDevice()));
 		hOrigProcImGui = (WNDPROC)SetWindowLongA((HWND)hMain, GWL_WNDPROC, (LONG)WndProc);
-		KeyHandler::AddCombo(VK_F12, []() {
-			
-			});
+		auto test = []() { r1::RefChat()->AddMessage(-1, "test"); };
+
+		combo = KeyHandler::AddCombo(VK_F12, test);
+		/*char buffer[32];
+		sprintf(buffer, "%p", combo.get());
+		r1::RefChat()->AddMessage(-1, buffer);*/
 	}
 	static void OnDraw() {
 		static bool init = false;
 		if (!init) {
 			OnInit();
 			init = true;
-			
+
 		}
 		ImGui_ImplDX9_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
+
+		ImGui::SetNextWindowPos({10, 400});
+		ImGui::SetNextWindowSize({ 200, 400 });
+		ImGui::Begin("test");
+		combo->Draw();
+		ImGui::End();
+
+
 		ImGui::EndFrame();
 		ImGui::Render();
 		ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
