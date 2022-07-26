@@ -31,9 +31,6 @@
     <Filter Include="imgui">
       <UniqueIdentifier>{f75cf559-8f32-44d5-85ad-a2524abe5893}</UniqueIdentifier>
     </Filter>
-    <Filter Include="samp api">
-      <UniqueIdentifier>{3a4ac854-bb3b-435e-a0f3-d2c3c683f865}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\imgui\imconfig.h">

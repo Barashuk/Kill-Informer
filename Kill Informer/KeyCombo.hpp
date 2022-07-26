@@ -7,16 +7,18 @@
 #include <string>
 
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <misc\cpp\imgui_stdlib.h>
 
 using namespace std;
 
-struct stKeyCombo;
+struct stHotKey;
 
-using key_ptr_t = std::shared_ptr<stKeyCombo>;
+using key_ptr_t = std::shared_ptr<stHotKey>;
 using func_t = const std::function<void()>;
+#define mb(text) MessageBox(NULL, text, "debug", 0);
 
-struct stKeyCombo : public std::enable_shared_from_this <stKeyCombo>{
+struct stHotKey : public std::enable_shared_from_this <stHotKey>{
 private:
 	func_t  _callback;
 	bool Ctrl, Alt, Shift;
@@ -25,17 +27,22 @@ private:
 public:
 	
 public:
-	stKeyCombo(uint8_t key, func_t& func, bool ctrl = false, bool alt = false) :
-		Key(key), _callback(func), Ctrl(ctrl), Alt(alt) 
-	{
+	stHotKey(uint8_t key, func_t& func, bool ctrl = false, bool alt = false) : Key(key), _callback(func), Ctrl(ctrl), Alt(alt) {
 		inputText = to_string(Key);
 	};
 	void Exec() {
 		_callback();
 	}
 	void Draw() {
-		ImGui::InputText("press key to change", &inputText,
-			ImGuiInputTextFlags_ReadOnly | ImGuiInputTextFlags_None | ImGuiInputTextFlags_NoHorizontalScroll);
+		string text = to_string((uint32_t)this);
+		ImGui::PushItemWidth(100);
+		ImGui::InputText(text.c_str(), &inputText, ImGuiInputTextFlags_ReadOnly);
+		auto g = ImGui::GetCurrentContext();
+		text = to_string(g->ActiveId);
+		ImGui::Text(text.c_str());
+		ImGui::PopItemWidth();
+		
+		
 	}
 	bool Check(uint32_t key) {
 		return  std::tie(Key) == std::tie(key);
@@ -52,26 +59,28 @@ public:
 		static std::vector<key_ptr_t> timers;
 		return timers;
 	}
-	static auto AddCombo(uint8_t key, func_t &func) {
-		auto& new_timer = std::make_shared<stKeyCombo>(key, func);
-		get_timers().push_back(new_timer);
-		return new_timer;
+	static auto AddHotKey(uint8_t key, func_t &func) {
+		auto& new_hotkey = std::make_shared<stHotKey>(key, func);
+		get_timers().push_back(new_hotkey);
+		return new_hotkey;
 	}
 	static void WndHandler(uint32_t msg, WPARAM wParam, LPARAM lParam) {
 		if (get_timers().empty())
 			return;
 		if (msg == WM_KEYDOWN) {
-			if ((HIWORD(lParam) & KF_REPEAT) == KF_REPEAT) {
+			if ((HIWORD(lParam) & KF_REPEAT) != KF_REPEAT) {
 				auto _find = find_if(get_timers().begin(), get_timers().end(), [wParam](const key_ptr_t& combo) { return combo->Check(wParam); });
-				if (_find == get_timers().end())
-					return;
-				_find->get()->Exec();
+				if (_find != get_timers().end())
+					_find->get()->Exec();
 				return;
 			}
 		}
 	}
 	static void Clear() {
 		get_timers().clear();
+	}
+	static string GetKeyNameText(uint8_t key) {
+
 	}
 };
 
