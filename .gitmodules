@@ -4,3 +4,6 @@
 [submodule "SAMP-API"]
 	path = SAMP-API
 	url = https://github.com/BlastHackNet/SAMP-API.git
+[submodule "json"]
+	path = json
+	url = https://github.com/nlohmann/json.git
