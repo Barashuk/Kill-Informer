@@ -26,10 +26,26 @@
     <ClCompile Include="..\imgui\misc\cpp\imgui_stdlib.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
+    <ClCompile Include="FontsHandler.hpp" />
+    <ClCompile Include="..\render\color.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\render\d3drender.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\render\sprite.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\render\texture.cpp">
+      <Filter>render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="imgui">
       <UniqueIdentifier>{f75cf559-8f32-44d5-85ad-a2524abe5893}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="render">
+      <UniqueIdentifier>{285baca7-f99d-46ca-926f-25a8a9f12cc7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -60,6 +76,25 @@
     <ClInclude Include="KeyCombo.hpp" />
     <ClInclude Include="..\imgui\misc\cpp\imgui_stdlib.h">
       <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Console.hpp" />
+    <ClInclude Include="..\render\color.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\render\cp1251.hpp">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\render\d3drender.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\render\render.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\render\sprite.h">
+      <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\render\texture.h">
+      <Filter>render</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

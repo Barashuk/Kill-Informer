@@ -23,7 +23,7 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v142</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='GTASA zDebug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -57,6 +57,9 @@
     <IncludePath>$(IncludePath);$(DIRECTX9_SDK_DIR)\Include\</IncludePath>
     <LibraryPath>$(LibraryPath);$(DIRECTX9_SDK_DIR)\Lib\x86\</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='GTASA Release|Win32'">
+    <VcpkgConfiguration>Release</VcpkgConfiguration>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='GTASA Release|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -65,7 +68,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>..\SAMP-API\include\;..\imgui\;$(PLUGIN_SDK_DIR)\plugin_sa\;$(PLUGIN_SDK_DIR)\plugin_sa\game_sa\;$(PLUGIN_SDK_DIR)\shared\;$(PLUGIN_SDK_DIR)\shared\game\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\render\;..\json\include;..\SAMP-API\include\;..\imgui\;$(PLUGIN_SDK_DIR)\plugin_sa\;$(PLUGIN_SDK_DIR)\plugin_sa\game_sa\;$(PLUGIN_SDK_DIR)\shared\;$(PLUGIN_SDK_DIR)\shared\game\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_NDEBUG;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;GTASA;GTAGAME_NAME="San Andreas";GTAGAME_ABBR="SA";GTAGAME_ABBRLOW="sa";GTAGAME_PROTAGONISTNAME="CJ";GTAGAME_CITYNAME="San Andreas";_DX9_SDK_INSTALLED;PLUGIN_SGV_10US;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -106,6 +109,11 @@
     <ClCompile Include="..\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\imgui\imgui_widgets.cpp" />
     <ClCompile Include="..\imgui\misc\cpp\imgui_stdlib.cpp" />
+    <ClCompile Include="..\render\color.cpp" />
+    <ClCompile Include="..\render\d3drender.cpp" />
+    <ClCompile Include="..\render\sprite.cpp" />
+    <ClCompile Include="..\render\texture.cpp" />
+    <ClCompile Include="FontsHandler.hpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -118,7 +126,14 @@
     <ClInclude Include="..\imgui\imstb_textedit.h" />
     <ClInclude Include="..\imgui\imstb_truetype.h" />
     <ClInclude Include="..\imgui\misc\cpp\imgui_stdlib.h" />
+    <ClInclude Include="..\render\color.h" />
+    <ClInclude Include="..\render\cp1251.hpp" />
+    <ClInclude Include="..\render\d3drender.h" />
+    <ClInclude Include="..\render\render.h" />
+    <ClInclude Include="..\render\sprite.h" />
+    <ClInclude Include="..\render\texture.h" />
     <ClInclude Include="KeyCombo.hpp" />
+    <ClInclude Include="Console.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

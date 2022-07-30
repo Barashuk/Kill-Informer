@@ -7,3 +7,6 @@
 [submodule "json"]
 	path = json
 	url = https://github.com/nlohmann/json.git
+[submodule "render"]
+	path = render
+	url = https://gitlab.com/prime-hack/samp/plugins/templates/render.git
