@@ -10,3 +10,6 @@
 [submodule "render"]
 	path = render
 	url = https://gitlab.com/prime-hack/samp/plugins/templates/render.git
+[submodule "RakHook"]
+	path = RakHook
+	url = https://github.com/imring/RakHook.git
