@@ -1,18 +1,15 @@
-#ifndef LOG_HPP
-#define LOG_HPP
-//#define TEST_CONSOLE
+#pragma once
+#ifndef CONSOLE_HPP
+#define CONSOLE_HPP
 #include <string>
 #include <fstream>
 #include <filesystem>
 #include <sstream>
 #include <vector>
-
 #include <imgui.h>
 #include <nlohmann/json.hpp>
-
+#include "json_helper.hpp"
 #include "KeyCombo.hpp"
-#include <sampapi/CGame.h>
-namespace r1 = SAMPAPI_NAMESPACE::v037r1;
 
 namespace fs = std::filesystem;
 using json = nlohmann::json;
@@ -33,6 +30,7 @@ enum StateDraw {
 	Overlay,
 	Console,
 };
+
 enum ErrorsType {
 	Info = 0,
 	Warning,
@@ -40,30 +38,16 @@ enum ErrorsType {
 	Error,
 };
 
-static std::string cp1251_to_utf8(std::string str) {
-	int result_w = MultiByteToWideChar(1251, 0, str.data(),
-		static_cast<int>(str.size()), NULL, 0);
-	if (result_w == 0)
-		return "";
 
-	std::wstring wres(result_w, '\0');
-	if (!MultiByteToWideChar(1251, 0, str.data(), static_cast<int>(str.size()),
-		wres.data(), result_w))
-		return "";
-
-	int result_c =
-		WideCharToMultiByte(CP_UTF8, 0, wres.data(),
-			static_cast<int>(wres.size()), NULL, 0, NULL, NULL);
-	if (result_c == 0)
-		return "";
-
-	std::string res(result_c, '\0');
-	if (!WideCharToMultiByte(CP_UTF8, 0, wres.data(),
-		static_cast<int>(wres.size()), res.data(), result_c,
-		0, 0))
-		return "";
-
-	return res;
+template<typename ... Args>
+static std::string string_format(const std::string& format, Args ... args)
+{
+	int size_s = std::snprintf(nullptr, 0, format.c_str(), args ...) + 1; // Extra space for '\0'
+	if (size_s <= 0) { throw std::runtime_error("Error during formatting."); }
+	auto size = static_cast<size_t>(size_s);
+	std::unique_ptr<char[]> buf(new char[size]);
+	std::snprintf(buf.get(), size, format.c_str(), args ...);
+	return std::string(buf.get(), buf.get() + size - 1); // We don't want the '\0' inside
 }
 
 struct stLine {
@@ -74,21 +58,40 @@ struct stLine {
 	};
 };
 
-using line_t = stLine;
+struct stConsoleSetting {
+	uint8_t  stateRender = StateDraw::Overlay;
+	uint8_t posOverlay = OverlayPos::BottomRight;
+	bool AutoScroll = true, openConsole = true, showTime = true;
+};
 
 class Console{
-public:
-	static uint8_t posOverlay, stateRender;
-	static bool AutoScroll, openConsole, showTime;
-	static key_ptr_t Activation;
 public:
 	Console() = delete;
 	Console(const Console&) = delete;
 	~Console() = delete;
 
+	static auto GetSetting() {
+		static stConsoleSetting cfg;
+		return &cfg;
+	}
+
+	static auto & GetHotKey() {
+		static key_ptr_t Activation;
+		return Activation;
+	}
+
 	static auto &GetLines(void) {
-		static vector <line_t> Lines;
+		static vector <stLine> Lines;
 		return Lines;
+	}
+	template<typename ... Args>
+	static void Info(const std::string& format, Args ... args) {
+		Add(string_format(format, args...), ErrorsType::Info);
+	}
+
+	template<typename ... Args>
+	static auto Warning(const std::string& format, Args ... args) {
+		Add(string_format(format, args ....), ErrorsType::Warning);
 	}
 
 	static void AddToFile(string str) {
@@ -100,7 +103,7 @@ public:
 
 	static void Add(string text, ErrorsType type = ErrorsType::Info) {
 		text = cp1251_to_utf8(text);
-		GetLines().push_back(line_t(type, "[ " + GetTimestamp() + " ]" , text));;
+		GetLines().push_back(stLine(type, "[ " + GetTimestamp() + " ]" , text));;
 		string _type;
 		switch (type) {
 		case ErrorsType::Info: _type = "[ Info ]"; break;
@@ -111,55 +114,48 @@ public:
 		}
 		AddToFile(_type + "[ " + GetTimestamp() + " ] " + text);
 	}
-
 	static string GetTimestamp() {
 		auto now = std::chrono::system_clock::now();
 		auto in_time_t = std::chrono::system_clock::to_time_t(now);
 
 
 		std::stringstream ss;
-		ss << std::put_time(std::localtime(&in_time_t), "%R:%S.%M");
+		ss << std::put_time(std::localtime(&in_time_t), "%R:%S");
 		return ss.str();
 	}
 
 	static void Init() {
-		Activation = KeyHandler::AddHotKey(VK_F2, [&]() {
-			stateRender++;
-			if (stateRender > StateDraw::Console) stateRender = None;
-			if (stateRender == StateDraw::Console) {
-				openConsole = !openConsole;
-				r1::RefGame()->SetCursorMode(r1::CURSOR_LOCKCAMANDCONTROL, openConsole);
+		GetHotKey() = KeyHandler::AddHotKey(VK_F2, [&]() {
+			auto cfg = GetSetting();
+			cfg->stateRender++;
+			if (cfg->stateRender > StateDraw::Console) cfg->stateRender = None;
+			if (cfg->stateRender == StateDraw::Console) {
+				cfg->openConsole = !cfg->openConsole;
 			}
 		});
-#ifdef TEST_CONSOLE
-		KeyHandler::AddHotKey(VK_F3, [&]() {
-			Add("test", ErrorsType::Info);
-		});
-		Add("Info", ErrorsType::Info);
-		Add("Warning", ErrorsType::Warning);
-		Add("Success", ErrorsType::Success);
-		Add("Error", ErrorsType::Error);
-#endif
+		
 		auto path = fs::current_path() / JSON_FILENAME;
 		if (!fs::exists(path))
 			return;
+		auto cfg = GetSetting();
 		fstream file(path.string().c_str(), ios::in | ios::binary);
 		json _json = json::parse(file);
-		_json["posOverlay"].get_to(posOverlay);
-		_json["stateRender"].get_to(stateRender);
-		_json["AutoScroll"].get_to(AutoScroll);
-		_json["showTime"].get_to(showTime);
-		_json["Activation"].get_to(Activation);
+		_json["posOverlay"].get_to(cfg->posOverlay);
+		_json["stateRender"].get_to(cfg->stateRender);
+		_json["AutoScroll"].get_to(cfg->AutoScroll);
+		_json["showTime"].get_to(cfg->showTime);
+		_json["Activation"].get_to(GetHotKey());
 		file.close();
 	};
 
 	static void Release() {
+		auto cfg = GetSetting();
 		json _json;
-		_json["posOverlay"] = posOverlay;
-		_json["stateRender"] = stateRender;
-		_json["AutoScroll"] = AutoScroll;
-		_json["showTime"] = showTime;
-		_json["Activation"] = Activation;
+		_json["posOverlay"] = cfg->posOverlay;
+		_json["stateRender"] = cfg->stateRender;
+		_json["AutoScroll"] = cfg->AutoScroll;
+		_json["showTime"] = cfg->showTime;
+		_json["Activation"] = GetHotKey();
 		auto path = fs::current_path() / JSON_FILENAME;
 		fstream file(path.string().c_str(), ios::out | ios::binary);
 		file << _json.dump(4);
@@ -167,7 +163,8 @@ public:
 	}
 
 	static void DrawLines() {
-		for (auto &line : GetLines()) {
+		auto cfg = GetSetting();
+		for (auto line : GetLines()) {
 			ImVec4 color;
 			string type;
 			switch (line._type) {
@@ -179,44 +176,45 @@ public:
 			}
 			ImGui::TextColored(color, type.c_str());
 			ImGui::SameLine();
-			if (showTime) {
+			if (cfg->showTime) {
 				ImGui::Text(line._time.c_str());
 				ImGui::SameLine();
 			}
 			ImGui::Text(line._text.c_str());
-			if (AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
+			if (cfg->AutoScroll && ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
 				ImGui::SetScrollHereY(1.0f);
 		}
 	}
 
 	static void DrawOverlay() {
-		if (stateRender != StateDraw::Overlay)
+		auto cfg = GetSetting();
+		if (cfg->stateRender != StateDraw::Overlay)
 			return;
 		ImGuiIO& io = ImGui::GetIO();
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-		if (posOverlay != -1) {
+		if (cfg->posOverlay != -1) {
 			const float PAD = 10.0f;
 			const ImGuiViewport* viewport = ImGui::GetMainViewport();
 			ImVec2 work_pos = viewport->WorkPos; 
 			ImVec2 work_size = viewport->WorkSize;
 			ImVec2 window_pos, window_pos_pivot;
-			window_pos.x = (posOverlay & 1) ? (work_pos.x + work_size.x - PAD) : (work_pos.x + PAD);
-			window_pos.y = (posOverlay & 2) ? (work_pos.y + work_size.y - PAD) : (work_pos.y + PAD);
-			window_pos_pivot.x = (posOverlay & 1) ? 1.0f : 0.0f;
-			window_pos_pivot.y = (posOverlay & 2) ? 1.0f : 0.0f;
+			window_pos.x = (cfg->posOverlay & 1) ? (work_pos.x + work_size.x - PAD) : (work_pos.x + PAD);
+			window_pos.y = (cfg->posOverlay & 2) ? (work_pos.y + work_size.y - PAD) : (work_pos.y + PAD);
+			window_pos_pivot.x = (cfg->posOverlay & 1) ? 1.0f : 0.0f;
+			window_pos_pivot.y = (cfg->posOverlay & 2) ? 1.0f : 0.0f;
 			ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, window_pos_pivot);
 			window_flags |= ImGuiWindowFlags_NoMove;
 		}
 		ImGui::SetNextWindowBgAlpha(0.65f); 
-		ImGui::SetNextWindowSize({ 300, 150 }, ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowSize({ 700, 150 }, ImGuiCond_FirstUseEver);
 		if (ImGui::Begin("Overlay log##overlay_log", NULL, window_flags)) {
 			DrawLines();
 			if (ImGui::BeginPopupContextWindow()) {
-				if (ImGui::MenuItem("Custom", NULL, posOverlay == -1)) posOverlay = OverlayPos::Custom;
-				if (ImGui::MenuItem("Top-left", NULL, posOverlay == 0)) posOverlay = OverlayPos::TopLeft;
-				if (ImGui::MenuItem("Top-right", NULL, posOverlay == 1)) posOverlay = OverlayPos::TopRight;
-				if (ImGui::MenuItem("Bottom-left", NULL, posOverlay == 2)) posOverlay = OverlayPos::BottomLeft;
-				if (ImGui::MenuItem("Bottom-right", NULL, posOverlay == 3)) posOverlay = OverlayPos::TopRight;
+				if (ImGui::MenuItem("Custom", NULL, cfg->posOverlay == -1)) cfg->posOverlay = OverlayPos::Custom;
+				if (ImGui::MenuItem("Top-left", NULL, cfg->posOverlay == 0)) cfg->posOverlay = OverlayPos::TopLeft;
+				if (ImGui::MenuItem("Top-right", NULL, cfg->posOverlay == 1)) cfg->posOverlay = OverlayPos::TopRight;
+				if (ImGui::MenuItem("Bottom-left", NULL, cfg->posOverlay == 2)) cfg->posOverlay = OverlayPos::BottomLeft;
+				if (ImGui::MenuItem("Bottom-right", NULL, cfg->posOverlay == 3)) cfg->posOverlay = OverlayPos::TopRight;
 				ImGui::EndPopup();
 			}
 		}
@@ -224,7 +222,8 @@ public:
 	}
 	
 	static void DrawConsole() {
-		if (stateRender != StateDraw::Console)
+		auto cfg = GetSetting();
+		if (cfg->stateRender != StateDraw::Console)
 			return;
 		ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings;
 		const ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -237,9 +236,9 @@ public:
 		const float footer_height_to_reserve = ImGui::GetStyle().ItemSpacing.y + ImGui::GetFrameHeightWithSpacing();
 
 		if (ImGui::BeginPopup("Settings")) {
-			ImGui::Checkbox("Auto-scroll", &AutoScroll);
-			ImGui::Checkbox("Time", &showTime);
-			Activation->Draw(u8"Активация");
+			ImGui::Checkbox("Auto-scroll", &cfg->AutoScroll);
+			ImGui::Checkbox("Time", &cfg->showTime);
+			GetHotKey()->Draw(u8"Активация");
 			ImGui::EndPopup();
 		}
 		if (ImGui::Button("Settings")) {
@@ -257,10 +256,4 @@ public:
 	};
 };
 
-uint8_t Console::posOverlay = OverlayPos::BottomRight;
-uint8_t Console::stateRender = StateDraw::Console;
-bool Console::AutoScroll = true;
-bool Console::openConsole = true;
-bool Console::showTime = true;
-key_ptr_t Console::Activation = nullptr;
 #endif

@@ -1,52 +1,60 @@
-#ifndef main_cpp
-#define main_cpp
-#include <string>
-#include <filesystem>
-#include <fstream>
+#include "main.h"
+#include <RakHook\rakhook.hpp>
+#include <RakNet\BitStream.h>
+#include "game_sa\eWeaponType.h"
+#include "game_sa\ePedPieceTypes.h"
+#include "game_sa\eEntityType.h"
+#include "game_sa\CWeapon.h"
 
-#include <nlohmann/json.hpp>
-
-#include "plugin.h"
-#include <imgui.h>
-#include <backends/imgui_impl_dx9.h>
-#include <backends/imgui_impl_win32.h>
-#include "KeyCombo.hpp"
-#include "Console.hpp"
-#include "FontsHandler.hpp"
-
-#include <sampapi/CChat.h>
-#include <sampapi/CGame.h>
-namespace r1 = SAMPAPI_NAMESPACE::v037r1;
 namespace fs = std::filesystem;
 using namespace plugin;
-using json = nlohmann::json;
 
-static WNDPROC  hOrigProcImGui = nullptr;
+static WNDPROC  hOrigProc = nullptr;
 static HWND     hMain = NULL;
+static IDirect3DDevice9* device = nullptr;
+std::unique_ptr <CKillState> killstate;
+//urmem::hook generateDamageEvent;
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
-		return true;
+	
+	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam)) {
+		//return CallWindowProc(hOrigProc, hWnd, msg, 0, 0);
+	}
+	if (!killstate->WndProc(hWnd, msg, wParam, lParam)) {
+		return false;
+	}
 	if(!KeyHandler::WndHandler(msg, wParam, lParam))
-		return CallWindowProc(hOrigProcImGui, hWnd, 0, 0, 0);
-	return CallWindowProc(hOrigProcImGui, hWnd, msg, wParam, lParam);
+		return CallWindowProc(hOrigProc, hWnd, 0, 0, 0);
+	
+	return CallWindowProc(hOrigProc, hWnd, msg, wParam, lParam);
 }
 
-key_ptr_t combo = nullptr;
-font_ptr_t font = nullptr;
+CdeclEvent < AddressList<0x5659D1, H_CALL, 0x567B5B, H_CALL, 0x60508B, H_CALL, 0x607FBE, H_CALL, 0x608217, H_CALL, 
+	0x60A943, H_CALL, 0x61CD40, H_CALL, 0x736306, H_CALL, 0x73A0C5, H_CALL, 0x73B074, H_CALL,
+	0x73BA50, H_CALL>, PRIORITY_AFTER, ArgPick6N <CPed*, 0, CEntity*, 1, eWeaponType, 2, int, 3, ePedPieceTypes, 4, int, 5 >,
+	void(CPed*, CEntity*, eWeaponType, int, ePedPieceTypes, int )>  generateDamageEvent;
 
 class CMain {
 public:
-	static bool open;
+	static void DamageEvent(CPed* victim, CEntity* creator, eWeaponType weapon, int damageFactor, ePedPieceTypes pedPiece, int direction) {
+		//Console::Info("test");
+		//generateDamageEvent.call<urmem::calling_convention::cdeclcall, void, CPed*, CEntity*, eWeaponType, int, ePedPieceTypes, int> (victim, creator, weapon, damageFactor, pedPiece, direction);
+		//
+		killstate->DamageEvent(victim, creator, weapon, damageFactor, pedPiece, direction);
+	}
 	static void OnRelease() {
+		killstate->Release();
+		rakhook::destroy();
 		KeyHandler::Clear();
 		Console::Release();
-		FontsHandler::Clear();
+		//FontsHandler::Clear();
 		ImGui_ImplDX9_Shutdown();
 		ImGui_ImplWin32_Shutdown();
 		ImGui::DestroyContext();
-		SetWindowLongA(hMain, GWL_WNDPROC, (LONG)hOrigProcImGui);
+		SetWindowLongA(hMain, GWL_WNDPROC, (LONG)hOrigProc);
+		
+
 	}
 	static void OnInit() {
 		IMGUI_CHECKVERSION();
@@ -56,22 +64,36 @@ public:
 		io.LogFilename = nullptr;
 		io.IniFilename = nullptr;
 		io.Fonts->Clear();
+		io.MouseDrawCursor = false;
+		io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
 		char buffer[MAX_PATH];	
 		GetWindowsDirectory(buffer, MAX_PATH);
 		io.Fonts->AddFontFromFileTTF(fs::path(fs::path(buffer) / "Fonts" / "trebucbd.ttf").string().c_str(), 16, NULL, io.Fonts->GetGlyphRangesCyrillic());
 		hMain = RsGlobal.ps->window;
-		auto device = reinterpret_cast<IDirect3DDevice9*>(RwD3D9GetCurrentD3DDevice());
+		device = reinterpret_cast<IDirect3DDevice9*>(RwD3D9GetCurrentD3DDevice());
 		ImGui_ImplWin32_Init(hMain);
 		ImGui_ImplDX9_Init(device);
-		hOrigProcImGui = (WNDPROC)SetWindowLongA(hMain, GWL_WNDPROC, (LONG)WndProc);
-		auto test = []() { 
-			open = !open;
-			r1::RefGame()->SetCursorMode(open ? r1::CURSOR_LOCKCAMANDCONTROL : r1::CURSOR_NONE, open);
-		};
-		combo = KeyHandler::AddHotKey(VK_F12, test);
-		Console::Init();
-		FontsHandler::Init(device);
-		font = FontsHandler::AddFont("Trebuc", 16, FCR_BOLD | FCR_BORDER);
+		hOrigProc = (WNDPROC)SetWindowLongA(hMain, GWL_WNDPROC, (LONG)WndProc);
+		Console::Init();		
+		rakhook::initialize();
+		killstate = std::make_unique<CKillState>();
+		killstate->Init();
+		/*rakhook::on_send_rpc += [](int& id, RakNet::BitStream*& bs, PacketPriority& priority, PacketReliability& reliability, char& ord_channel, bool& sh_timestamp) -> bool {		 
+			if (id == 115) {
+				bool bGiveOrTake;
+				UINT16 wPlayerID;
+				float damage_amount;
+				UINT32 dWeaponID;
+				UINT32 dBodypart;
+				bs->Read(bGiveOrTake);
+				bs->Read(wPlayerID);
+				bs->Read(damage_amount);
+				bs->Read(dWeaponID);
+				bs->Read(dBodypart);
+				killstate->SetGunDamage(dWeaponID, damage_amount);
+			}
+			return true;
+		};*/
 	}
 	static void OnDraw() {
 		static bool init = false;
@@ -82,41 +104,41 @@ public:
 		ImGui_ImplDX9_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
-		if (open) {
-			ImGui::SetNextWindowPos({ 10, 400 }, ImGuiCond_Once);
-			ImGui::SetNextWindowSize({ 400, 200 }, ImGuiCond_Once);
-			ImGui::Begin("test", &open);
-			combo->Draw();
-			font->Setting();
-			ImGui::End();
-		}
 		Console::Draw();
+		killstate->DrawMenu();
 		ImGui::EndFrame();
 		ImGui::Render();
 		ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
-		font->Print(10, 400, "testing");
+		IDirect3DStateBlock9* d3d9_state_block = NULL;
+		if (device->CreateStateBlock(D3DSBT_ALL, &d3d9_state_block) < 0)
+			return;
+		d3d9_state_block->Capture();
+		killstate->Draw();
+		d3d9_state_block->Apply();
+		d3d9_state_block->Release();
+		killstate->Process();
 	}
 	static void OnReset() {
 		FontsHandler::OnReset();
 	}
 	static void OnLost() {
-		ImGui_ImplDX9_InvalidateDeviceObjects();
 		FontsHandler::OnLost();
+		ImGui_ImplDX9_InvalidateDeviceObjects();
+				
 	}
 	CMain() {
 		Events::d3dLostEvent += OnLost;
 		Events::d3dResetEvent += OnReset;
 		Events::drawingEvent += OnDraw;
+		//generateDamageEvent.install(0x73A530, urmem::get_func_addr(&DamageEvent));
+		generateDamageEvent += DamageEvent;
 	}
 	~CMain() {
 		Events::d3dLostEvent -= OnLost;
 		Events::d3dResetEvent -= OnReset;
 		Events::drawingEvent -= OnDraw;
+		generateDamageEvent.AddAfter(DamageEvent);
 		OnRelease();
 	}
 } object;
-
-bool CMain::open = false;
-
-#endif
 

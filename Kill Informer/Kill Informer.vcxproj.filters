@@ -39,6 +39,36 @@
     <ClCompile Include="..\render\texture.cpp">
       <Filter>render</Filter>
     </ClCompile>
+    <ClCompile Include="..\RakHook\RakHook\offsets.cpp">
+      <Filter>RakHook\RakHook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\RakHook\RakHook\rakhook.cpp">
+      <Filter>RakHook\RakHook</Filter>
+    </ClCompile>
+    <ClCompile Include="..\RakHook\RakNet\BitStream.cpp">
+      <Filter>RakHook\RakNet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\RakHook\RakNet\DS_HuffmanEncodingTree.cpp">
+      <Filter>RakHook\RakNet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\RakHook\RakNet\PluginInterface.cpp">
+      <Filter>RakHook\RakNet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\RakHook\RakNet\StringCompressor.cpp">
+      <Filter>RakHook\RakNet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\RakHook\Yet-another-hook-library\hde32\src\hde32.cpp">
+      <Filter>RakHook\Yet-another-hook-library\hde32\src</Filter>
+    </ClCompile>
+    <ClCompile Include="CKillState_packs.cpp">
+      <Filter>Kill State</Filter>
+    </ClCompile>
+    <ClCompile Include="CKillState_draw.cpp">
+      <Filter>Kill State</Filter>
+    </ClCompile>
+    <ClCompile Include="CKillState_funcs.cpp">
+      <Filter>Kill State</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="imgui">
@@ -46,6 +76,33 @@
     </Filter>
     <Filter Include="render">
       <UniqueIdentifier>{285baca7-f99d-46ca-926f-25a8a9f12cc7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RakHook">
+      <UniqueIdentifier>{20cd73be-4183-47a9-8cd1-f167581d4b2f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RakHook\RakHook">
+      <UniqueIdentifier>{afce6d0f-702e-4265-8cfd-f36b72f1b3b1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RakHook\RakNet">
+      <UniqueIdentifier>{a2f353da-ddf7-4bcb-b640-af521040085a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RakHook\Yet-another-hook-library">
+      <UniqueIdentifier>{7d1740ae-e65d-410b-b6d3-20ce83b4edb6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RakHook\Yet-another-hook-library\hde32">
+      <UniqueIdentifier>{9d2fda3b-7526-4d4d-980a-32c8822f2073}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RakHook\Yet-another-hook-library\hde32\include">
+      <UniqueIdentifier>{56ab0063-8250-4d9e-a4cf-9e1e3e1b379d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RakHook\Yet-another-hook-library\hde32\src">
+      <UniqueIdentifier>{76e708ea-1772-42d9-8101-c7e3083e6150}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RakHook\Yet-another-hook-library\xbyak">
+      <UniqueIdentifier>{1c989c55-372d-49f0-a062-e74b83ff22bd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Kill State">
+      <UniqueIdentifier>{eeffdfcc-3a49-402d-8e29-865c0708d2cd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -95,6 +152,89 @@
     </ClInclude>
     <ClInclude Include="..\render\texture.h">
       <Filter>render</Filter>
+    </ClInclude>
+    <ClInclude Include="json_helper.hpp" />
+    <ClInclude Include="main.h" />
+    <ClInclude Include="..\RakHook\RakHook\hook_shared.hpp">
+      <Filter>RakHook\RakHook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\RakHook\hooked_rakclient_interface.hpp">
+      <Filter>RakHook\RakHook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\RakHook\offsets.hpp">
+      <Filter>RakHook\RakHook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\RakHook\rakhook.hpp">
+      <Filter>RakHook\RakHook</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\RakNet\BitStream.h">
+      <Filter>RakHook\RakNet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\RakNet\DS_HuffmanEncodingTree.h">
+      <Filter>RakHook\RakNet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\RakNet\DS_HuffmanEncodingTreeNode.h">
+      <Filter>RakHook\RakNet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\RakNet\DS_LinkedList.h">
+      <Filter>RakHook\RakNet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\RakNet\DS_List.h">
+      <Filter>RakHook\RakNet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\RakNet\DS_Map.h">
+      <Filter>RakHook\RakNet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\RakNet\DS_OrderedList.h">
+      <Filter>RakHook\RakNet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\RakNet\DS_Queue.h">
+      <Filter>RakHook\RakNet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\RakNet\NetworkTypes.h">
+      <Filter>RakHook\RakNet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\RakNet\PacketEnumerations.h">
+      <Filter>RakHook\RakNet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\RakNet\PacketPriority.h">
+      <Filter>RakHook\RakNet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\RakNet\PluginInterface.h">
+      <Filter>RakHook\RakNet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\RakNet\RakClientInterface.h">
+      <Filter>RakHook\RakNet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\RakNet\StringCompressor.h">
+      <Filter>RakHook\RakNet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\Yet-another-hook-library\hook.h">
+      <Filter>RakHook\Yet-another-hook-library</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\Yet-another-hook-library\hook_function_traits.hpp">
+      <Filter>RakHook\Yet-another-hook-library</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\Yet-another-hook-library\hde32\include\hde32.h">
+      <Filter>RakHook\Yet-another-hook-library\hde32\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\Yet-another-hook-library\hde32\include\table32.h">
+      <Filter>RakHook\Yet-another-hook-library\hde32\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\Yet-another-hook-library\xbyak\xbyak_bin2hex.h">
+      <Filter>RakHook\Yet-another-hook-library\xbyak</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\Yet-another-hook-library\xbyak\xbyak_mnemonic.h">
+      <Filter>RakHook\Yet-another-hook-library\xbyak</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\Yet-another-hook-library\xbyak\xbyak_util.h">
+      <Filter>RakHook\Yet-another-hook-library\xbyak</Filter>
+    </ClInclude>
+    <ClInclude Include="..\RakHook\Yet-another-hook-library\xbyak\xbyak.h">
+      <Filter>RakHook\Yet-another-hook-library\xbyak</Filter>
+    </ClInclude>
+    <ClInclude Include="CKillState.h">
+      <Filter>Kill State</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

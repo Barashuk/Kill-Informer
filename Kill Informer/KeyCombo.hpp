@@ -1,3 +1,4 @@
+#pragma once
 #ifndef KEYCOMBO_HPP
 #define KEYCOMBO_HPP
 
@@ -193,7 +194,7 @@ static std::string GetKeyName(uint8_t key) {
 	return it == keys.end() ? "Unknown" : it->second;
 }
 
-void SetText(std::string &str, const std::string &text, const bool &value) {
+static void SetText(std::string &str, const std::string &text, const bool &value) {
 	if (!value)
 		return;
 	if (str.empty()) {
@@ -204,14 +205,17 @@ void SetText(std::string &str, const std::string &text, const bool &value) {
 	}
 }
 
-template <typename mod>
+template <typename Type>
 struct stModState {
 public:
-	mod _active, _old, _restore;
-	stModState(mod active) {
+	Type _active, _restore;
+	stModState(Type active) {
 		_active = active;
+		_restore = 0;
 	};
-	stModState() { };
+	stModState() { 
+		_restore = _active = 0;
+	};
 	void SaveState() {
 		_restore = _active;
 	}
@@ -256,9 +260,16 @@ public:
 	void Exec() {
 		_callback();
 	}
-	void Draw(std::string label = u8"Нажмите кнопку для смены бинда", float width = 150) {
-		std::string text = label + "##" + std::to_string(reinterpret_cast<uint32_t>(this));
+	void Draw(std::string label = u8"Активация", float width = 150) {
+		std::string text;
 		ImGui::PushItemWidth(width);
+		if (Edit) {
+			text = "##hotkey_id_" + std::to_string(reinterpret_cast<uint32_t>(this));
+		}
+		else {
+			text = label + "##hotkey_id_" + std::to_string(reinterpret_cast<uint32_t>(this));
+		}
+
 		ImGui::InputText(text.c_str(), &inputText, ImGuiInputTextFlags_ReadOnly | ImGuiInputTextFlags_CallbackAlways);
 		ItemID = ImGui::GetID(text.c_str());
 		window = ImGui::GetCurrentWindowRead();
@@ -298,23 +309,6 @@ public:
 		inputText += GetKeyName(_key._active);
 	}
 };
-
-static void to_json(nlohmann::json& j, const key_ptr_t& p) {
-	j = nlohmann::json{
-		{ "Key", p->_key._active }, 
-		{ "Ctrl", p->_ctrl._active },
-		{ "Shift", p->_shift._active },
-		{ "Alt", p->_alt._active },
-	};
-}
-
-static void from_json(const nlohmann::json& j, key_ptr_t &p) {
-	j.at("Key").get_to(p->_key._active);
-	j.at("Ctrl").get_to(p->_ctrl._active);
-	j.at("Shift").get_to(p->_shift._active);
-	j.at("Alt").get_to(p->_alt._active);
-	p->Prepare();
-}
 
 class KeyHandler {
 public:
@@ -389,5 +383,22 @@ public:
 	}
 	
 };
+
+static void to_json(nlohmann::json& j, const key_ptr_t& p) {
+	j = nlohmann::json{
+		{ "Key", p->_key._active },
+		{ "Ctrl", p->_ctrl._active },
+		{ "Shift", p->_shift._active },
+		{ "Alt", p->_alt._active },
+	};
+}
+
+static void from_json(const nlohmann::json& j, key_ptr_t& p) {
+	j.at("Key").get_to(p->_key._active);
+	j.at("Ctrl").get_to(p->_ctrl._active);
+	j.at("Shift").get_to(p->_shift._active);
+	j.at("Alt").get_to(p->_alt._active);
+	p->Prepare();
+}
 
 #endif
