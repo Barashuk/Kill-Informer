@@ -13,3 +13,6 @@
 [submodule "RakHook"]
 	path = RakHook
 	url = https://github.com/imring/RakHook.git
+[submodule "ImGuiFileDialog"]
+	path = ImGuiFileDialog
+	url = https://github.com/aiekick/ImGuiFileDialog
