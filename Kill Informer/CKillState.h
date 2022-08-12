@@ -1,9 +1,13 @@
 #pragma once
+
+
 #include <game_sa/CPed.h>
 #include <vector>
 #include <string>
 #include <map>
 #include "FontsHandler.hpp"
+#include <ImGuiFileDialog/ImGuiFileDialog.h>
+
 using namespace std;
 
 struct stStat {
@@ -32,7 +36,7 @@ public:
 struct stDKA {
 	stStat Kills, Deaths, Assists;
 	stDKA() {
-		Kills = Deaths = Assists = 0;
+		Kills =0, Deaths = 0, Assists = 0;
 	}
 };
 
@@ -77,6 +81,8 @@ public:
 	}
 };
 
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(stElementEvent, value, name, sound , color);
+
 struct stPack {
 	string			Name;
 	font_ptr_t		fontKills, 
@@ -114,9 +120,19 @@ private:
 								renderString;
 	stElementEvent				new_event_add;
 
+	ImGuiFileDialog				fileDialog;
+	string						lastPath;
+	int							elemMusic = -1;
+
+
+
+
+
 	bool						bMenu;
 
 	void						DetectKillsAndDeaths();
+
+	void						InitFonts();
 
 
 	void						PrepareKillString(CPed* killer, CPed *victim, CPed* assist);
@@ -129,7 +145,9 @@ private:
 	void						DrawPacks();
 	void						DrawHeader();
 	void						DrawFontsSetting();
-	void						DrawTable(string label, vector <stElementEvent> &events);
+	void						DrawTable(string label, vector <stElementEvent> &events, vector<string> &music);
+	void						DrawDialog();
+
 	void						ParsePacks();
 	void						SavePacks();
 public:

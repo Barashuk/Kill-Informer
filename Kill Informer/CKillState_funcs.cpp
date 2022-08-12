@@ -3,6 +3,11 @@
 #include <game_sa/ePedState.h>
 #include "Console.hpp"
 #include "plugin.h"
+#include "CustomFont.cpp"
+#include "IconsFontAwesome6.h"
+#include "IconsFontAwesome6Brands.h"
+
+
 namespace R1 = sampapi::v037r1;
 #pragma warning (disable: 26812)
 #pragma warning (disable: 6011)
@@ -13,11 +18,18 @@ void CKillState::Init() {
 	activeMenu = KeyHandler::AddHotKey(VK_F12, [this]() { OpenMenu(); });
 	pathDir = fs::current_path() / "Kill Informer";
 	bMenu = false;
+	InitFonts();
 	LoadSetting();
 	ParsePacks();
+	fileDialog.SetFileStyle(IGFD_FileStyleByTypeDir, nullptr, ImVec4(0.8f, 0.8f, 0.8f, 1.0f), ICON_IGFD_FOLDER);
+	fileDialog.SetFileStyle(IGFD_FileStyleByTypeFile, nullptr, ImVec4(1.0f, 1.0f, 1.0f, 1.0f), ICON_IGFD_FILE);
+	fileDialog.SetLocales(LC_ALL, "Russian", "Russian");
 }
 
 void CKillState::Release() {
+	if (fileDialog.IsOpened()) {
+		fileDialog.Close();
+	}
 	SavePacks();
 	SaveSetting();
 }
@@ -141,3 +153,25 @@ bool CKillState::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	return true;
 }
 
+void CKillState::InitFonts() {
+	vector <string> fontNames = {
+		"fa-brands-400.ttf",
+		"fa-regular-400.ttf",
+		"fa-solid-900.ttf",
+	};
+	auto pathFonts = pathDir / "Fonts";
+	auto& io = ImGui::GetIO();
+	for (auto name : fontNames) {
+		auto path = pathFonts / name;
+		if(!fs::exists(path))
+			continue;
+		static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_16_FA, 0 };
+		ImFontConfig icons_config; icons_config.MergeMode = true; icons_config.PixelSnapH = true;
+		
+
+
+		io.Fonts->AddFontFromFileTTF(path.string().c_str(), 16.0f, &icons_config, icons_ranges);
+	}
+
+
+}

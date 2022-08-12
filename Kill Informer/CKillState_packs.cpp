@@ -16,6 +16,7 @@ void from_json(const nlohmann::json& j, stSetting& v) {
 	j.at("activeElementMenu").get_to(v.activeElementMenu);
 }
 
+/*
 void to_json(nlohmann::json& j, const stElementEvent& v) {
 	j = json{
 		{"value", v.value},
@@ -23,15 +24,15 @@ void to_json(nlohmann::json& j, const stElementEvent& v) {
 		{"sound", v.sound},
 		{"color", v.color},
 	};
-}
+}*/
 
+/*
 void from_json(const nlohmann::json& j, stElementEvent& v) {
 	j.at("value").get_to(v.value);
 	j.at("name").get_to(v.name);
 	j.at("sound").get_to(v.sound);
-	j.at("color").get_to(v.color);
-	
-}
+	j.at("color").get_to(v.color);	
+}*/
 
 
 void CKillState::ParsePacks() {
@@ -86,7 +87,17 @@ void CKillState::ParsePacks() {
 		if (it != entries.end()) {
 			string data = it->readAsText();
 			json events = json::parse(data);
-			events["Kills"].get_to(pack.KillsEvents);
+			if (events.contains("Kills")) {
+				
+				//events["Kills"].get<vector<stElementEvent>>();
+
+			}
+			
+			
+
+
+
+			//events["Kills"].get_to(pack.KillsEvents);
 			/*events["Deaths"].get_to(pack.DeathsEvents);
 			events["Assists"].get_to(pack.AssistsEvents);*/
 		}
@@ -113,7 +124,7 @@ void CKillState::SavePacks() {
 		try {
 			auto p = pathDir / "Packs" / (pack.Name + ".zip");
 			ZipArchive zf(p.string());
-			auto t = zf.open(ZipArchive::Write);
+			zf.open(ZipArchive::Write);
 			json fonts;
 			fonts["Kills"] = pack.fontKills;
 			fonts["Deaths"] = pack.fontDeaths;
@@ -127,8 +138,6 @@ void CKillState::SavePacks() {
 			events["Kills"] = pack.KillsEvents;
 			events["Deaths"] = pack.DeathsEvents;
 			events["Assists"] = pack.AssistsEvents;
-			
-			
 			string dump_events = events.dump(4);
 			zf.addData("events.json", dump_events.data(), dump_events.length());
 

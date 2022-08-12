@@ -1,11 +1,14 @@
-#include "CKillState.h"
 #define IMGUI_DEFINE_MATH_OPERATORS
+#include "CKillState.h"
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <sampapi/CGame.h>
 #include <sstream>
 #include <functional>
-#include <limits>
+#include <libzippp/libzippp.h>
+#include "IconsFontAwesome6.h"
+using namespace libzippp;
+
 namespace R1 = sampapi::v037r1;
 
 void CKillState::OpenMenu() {
@@ -150,7 +153,7 @@ void CKillState::DrawMenu() {
 		}
 		DrawPacks();
 		DrawHeader();
-
+		DrawDialog();
 		ImGui::End();
 	}
 }
@@ -211,12 +214,12 @@ void CKillState::DrawHeader() {
 		DrawFontsSetting();
 	}
 	else if (cfg.activeElementMenu == u8"Убийства##tab_bar_kills") {
-		DrawTable("##kill_table", curPack->KillsEvents);
+		DrawTable("##kill_table", curPack->KillsEvents, curPack->SoundFiles);
 		
 	}
 }
 
-void CKillState::DrawTable(string label, vector<stElementEvent>& events) {
+void CKillState::DrawTable(string label, vector<stElementEvent>& events, vector <string> &music) {
 	auto columnInputInt = [](string label, string hint, uint8_t& value, int id = -1) -> bool {
 		bool result = false;
 		ImGui::TableNextColumn();
@@ -247,13 +250,52 @@ void CKillState::DrawTable(string label, vector<stElementEvent>& events) {
 		ImGui::InputText(label.c_str(), &value);
 		ImGui::PopItemWidth();
 	};
-	auto columnInputSound = [](string label, string hint, string& value) {
-		ImGui::TableNextColumn();
+	auto columnInputSound = [&](string label, string hint, string& value, vector <string> &music, int elem = -1) {
+		/*ImGui::TableNextColumn();
 		ImGui::PushItemWidth(ImGui::GetColumnWidth());
 		label = label + "_sound";
 		ImGui::Text(hint.c_str());
 		ImGui::InputText(label.c_str(), &value);
-		ImGui::PopItemWidth();
+		ImGui::PopItemWidth();*/
+		ImGui::TableNextColumn();
+		/*label = "open music"  + label + "_sound";
+		if (ImGui::Button(label.c_str())) {
+			const char* filters = ".*,.cpp,.h,.hpp";
+			static ImGuiFileDialogFlags flags = ImGuiFileDialogFlags_Default | ImGuiFileDialogFlags_DontShowHiddenFiles | ImGuiFileDialogFlags_Modal;
+			fileDialog.OpenDialog("ChooseFileDlgKey", ICON_IGFD_FOLDER_OPEN " Choose a File", filters, ".", "", 1, nullptr, flags);
+			Console::Add("open");
+		}*/
+		ImGuiFileDialogFlags flags = ImGuiFileDialogFlags_Modal | ImGuiFileDialogFlags_DontShowHiddenFiles | ImGuiFileDialogFlags_DisableCreateDirectoryButton;
+		ImGui::Text(u8"Выберите звук");
+		ImGui::SameLine();
+		string b = string(ICON_FA_MUSIC) + u8" звуки##dialog_open_menu";
+		if (ImGui::Button(b.c_str())) {
+			if (elem > -1) {
+				elemMusic = elem;
+			}
+			else {
+				elemMusic = -1;
+			}
+			
+			const char* filters = u8"Звуковые файлы{.mp3,.wav,.ogg}";
+			fileDialog.OpenDialog("SelectMusicFile", ICON_IGFD_FOLDER_OPEN u8" Выберите папку", filters, lastPath, 1, nullptr, flags);
+		}
+		if (music.empty()) {
+			ImGui::Text(u8"Список пустой");
+		}
+		else {
+			label = label + "_music_combo";
+			if (ImGui::BeginCombo(label.c_str(), value.c_str())) {
+				for (size_t i = 0; i < music.size(); i++) {
+					auto text = music.at(i);
+					if (ImGui::Selectable(text.data(), text.data() == value)) {
+						value = text;
+					}
+				}
+				ImGui::EndCombo();
+			}
+		}
+		
 	};
 	auto columnInputColor = [](string label, string hint, ImVec4& value) {
 		ImGui::TableNextColumn();
@@ -275,7 +317,7 @@ void CKillState::DrawTable(string label, vector<stElementEvent>& events) {
 		//---------------------------
 		columnInputText(label, u8"Введите имя", new_event_add.name);
 		//---------------------------
-		columnInputSound(label, u8"Выберите звук", new_event_add.sound);
+		columnInputSound(label, u8"Выберите звук", new_event_add.sound, music);
 		//---------------------------
 		columnInputColor(label, u8"Выберите цвет", new_event_add.color);
 		//---------------------------
@@ -316,16 +358,42 @@ void CKillState::DrawTable(string label, vector<stElementEvent>& events) {
 				//---------------------------
 				columnInputText(label, u8"Введите имя", event.name);
 				//---------------------------
-				columnInputText(label, u8"Выберите звук", event.sound);
+				columnInputSound(label, u8"Выберите звук", event.sound, music, id);
 				//---------------------------
 				columnInputColor(label, u8"Выберите цвет", event.color);
 			}
 
 			ImGui::EndTable();
 		}
+	}	
+}
+
+void CKillState::DrawDialog() {
+	auto curPack = find_if(Packs.begin(), Packs.end(), [&](const stPack& elem) {return elem.Name == cfg.currentPack; });
+	if (fileDialog.Display("SelectMusicFile", ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize, ImVec2(700, 400))) {
+		if (fileDialog.IsOk()) {
+			lastPath = fileDialog.GetFilePathName();
+			fs::directory_entry file(lastPath);
+			
+			auto filename = file.path().filename().string();
+			auto p = pathDir / "Packs" / (cfg.currentPack + ".zip");
+			ZipArchive zf(p.string());
+			zf.open(ZipArchive::Write); 
+			zf.addFile(string("Sounds/") + filename, file.path().string());
+			zf.close();	
+			curPack->SoundFiles.push_back(filename);
+			if (elemMusic > 0) {
+				//curPack->SoundFiles.at(elemMusic) = filename;
+			}
+			else {
+				new_event_add.sound = filename;
+			}
+			
+			
+		}
+		fileDialog.Close();
 	}
 
-	
 }
 
 void CKillState::DrawStats() {

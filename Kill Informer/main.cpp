@@ -5,6 +5,9 @@
 #include "game_sa\ePedPieceTypes.h"
 #include "game_sa\eEntityType.h"
 #include "game_sa\CWeapon.h"
+#include <CustomFont.cpp>
+
+
 
 namespace fs = std::filesystem;
 using namespace plugin;
@@ -13,19 +16,18 @@ static WNDPROC  hOrigProc = nullptr;
 static HWND     hMain = NULL;
 static IDirect3DDevice9* device = nullptr;
 std::unique_ptr <CKillState> killstate;
-//urmem::hook generateDamageEvent;
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	
 	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam)) {
-		//return CallWindowProc(hOrigProc, hWnd, msg, 0, 0);
+		return CallWindowProc(hOrigProc, hWnd, 0, 0, 0);
 	}
 	if (!killstate->WndProc(hWnd, msg, wParam, lParam)) {
 		return false;
 	}
 	if(!KeyHandler::WndHandler(msg, wParam, lParam))
-		return CallWindowProc(hOrigProc, hWnd, 0, 0, 0);
+		return CallWindowProc(hOrigProc, 0, 0, 0, 0);
 	
 	return CallWindowProc(hOrigProc, hWnd, msg, wParam, lParam);
 }
@@ -38,9 +40,6 @@ CdeclEvent < AddressList<0x5659D1, H_CALL, 0x567B5B, H_CALL, 0x60508B, H_CALL, 0
 class CMain {
 public:
 	static void DamageEvent(CPed* victim, CEntity* creator, eWeaponType weapon, int damageFactor, ePedPieceTypes pedPiece, int direction) {
-		//Console::Info("test");
-		//generateDamageEvent.call<urmem::calling_convention::cdeclcall, void, CPed*, CEntity*, eWeaponType, int, ePedPieceTypes, int> (victim, creator, weapon, damageFactor, pedPiece, direction);
-		//
 		killstate->DamageEvent(victim, creator, weapon, damageFactor, pedPiece, direction);
 	}
 	static void OnRelease() {
@@ -68,16 +67,30 @@ public:
 		io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
 		char buffer[MAX_PATH];	
 		GetWindowsDirectory(buffer, MAX_PATH);
+
+		
+
 		io.Fonts->AddFontFromFileTTF(fs::path(fs::path(buffer) / "Fonts" / "trebucbd.ttf").string().c_str(), 16, NULL, io.Fonts->GetGlyphRangesCyrillic());
+		static const ImWchar icons_ranges[] = { ICON_MIN_IGFD, ICON_MAX_IGFD, 0 };
+		ImFontConfig icons_config; icons_config.MergeMode = true; icons_config.PixelSnapH = true;
+		io.Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_IGFD, 15.0f, &icons_config, icons_ranges);
+		
+
+
+		
+		Console::Init();		
+		rakhook::initialize();
+		killstate = std::make_unique<CKillState>();
+		killstate->Init();
+
+
+
 		hMain = RsGlobal.ps->window;
 		device = reinterpret_cast<IDirect3DDevice9*>(RwD3D9GetCurrentD3DDevice());
 		ImGui_ImplWin32_Init(hMain);
 		ImGui_ImplDX9_Init(device);
 		hOrigProc = (WNDPROC)SetWindowLongA(hMain, GWL_WNDPROC, (LONG)WndProc);
-		Console::Init();		
-		rakhook::initialize();
-		killstate = std::make_unique<CKillState>();
-		killstate->Init();
+
 		/*rakhook::on_send_rpc += [](int& id, RakNet::BitStream*& bs, PacketPriority& priority, PacketReliability& reliability, char& ord_channel, bool& sh_timestamp) -> bool {		 
 			if (id == 115) {
 				bool bGiveOrTake;

@@ -60,6 +60,9 @@
   <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='GTASA Release|Win32'">
     <VcpkgConfiguration>Release</VcpkgConfiguration>
   </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnabled>true</VcpkgEnabled>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='GTASA Release|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -68,8 +71,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>..\RakHook\;..\render\;..\json\include;..\SAMP-API\include\;..\imgui\;$(PLUGIN_SDK_DIR)\plugin_sa\;$(PLUGIN_SDK_DIR)\plugin_sa\game_sa\;$(PLUGIN_SDK_DIR)\shared\;$(PLUGIN_SDK_DIR)\shared\game\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_NDEBUG;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;GTASA;GTAGAME_NAME="San Andreas";GTAGAME_ABBR="SA";GTAGAME_ABBRLOW="sa";GTAGAME_PROTAGONISTNAME="CJ";GTAGAME_CITYNAME="San Andreas";_DX9_SDK_INSTALLED;PLUGIN_SGV_10US;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\ImGuiFileDialog\;..\RakHook\;..\render\;..\json\include;..\SAMP-API\include\;..\imgui\;$(PLUGIN_SDK_DIR)\plugin_sa\;$(PLUGIN_SDK_DIR)\plugin_sa\game_sa\;$(PLUGIN_SDK_DIR)\shared\;$(PLUGIN_SDK_DIR)\shared\game\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>CUSTOM_IMGUIFILEDIALOG_CONFIG="CustomImGuiFileDialogConfig.h";_NDEBUG;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;GTASA;GTAGAME_NAME="San Andreas";GTAGAME_ABBR="SA";GTAGAME_ABBRLOW="sa";GTAGAME_PROTAGONISTNAME="CJ";GTAGAME_CITYNAME="San Andreas";_DX9_SDK_INSTALLED;PLUGIN_SGV_10US;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -101,6 +104,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\ImGuiFileDialog\CustomFont.cpp" />
+    <ClCompile Include="..\ImGuiFileDialog\ImGuiFileDialog\ImGuiFileDialog.cpp" />
     <ClCompile Include="..\imgui\backends\imgui_impl_dx9.cpp" />
     <ClCompile Include="..\imgui\backends\imgui_impl_win32.cpp" />
     <ClCompile Include="..\imgui\imgui.cpp" />
@@ -127,6 +132,10 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\ImGuiFileDialog\CustomFont.h" />
+    <ClInclude Include="..\ImGuiFileDialog\CustomImGuiFileDialogConfig.h" />
+    <ClInclude Include="..\ImGuiFileDialog\ImGuiFileDialog\ImGuiFileDialog.h" />
+    <ClInclude Include="..\ImGuiFileDialog\ImGuiFileDialog\ImGuiFileDialogConfig.h" />
     <ClInclude Include="..\imgui\backends\imgui_impl_dx9.h" />
     <ClInclude Include="..\imgui\backends\imgui_impl_win32.h" />
     <ClInclude Include="..\imgui\imconfig.h" />
@@ -169,6 +178,8 @@
     <ClInclude Include="..\render\sprite.h" />
     <ClInclude Include="..\render\texture.h" />
     <ClInclude Include="CKillState.h" />
+    <ClInclude Include="IconsFontAwesome6.h" />
+    <ClInclude Include="IconsFontAwesome6Brands.h" />
     <ClInclude Include="json_helper.hpp" />
     <ClInclude Include="KeyCombo.hpp" />
     <ClInclude Include="Console.hpp" />
