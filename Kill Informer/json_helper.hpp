@@ -5,6 +5,19 @@
 #include <imgui.h>
 #include <string>
 
+template <typename Type>
+static void from_json_with_check(const nlohmann::json& j, std::string section, Type value) {
+	if (j.contains(section)) {
+		j.at(section).get_to(value);
+		Console::Info("find", section.c_str());
+	}
+	else {
+		Console::Info("not find", section.c_str());
+	}
+}
+
+
+
 static void to_json(nlohmann::json& j, const ImVec2& v) {
 	j = nlohmann::json{
 		{"x", v.x},
@@ -38,34 +51,27 @@ static std::string cp1251_to_utf8(std::string str) {
 		static_cast<int>(str.size()), NULL, 0);
 	if (result_w == 0)
 		return "";
-
 	std::wstring wres(result_w, '\0');
 	if (!MultiByteToWideChar(1251, 0, str.data(), static_cast<int>(str.size()),
 		wres.data(), result_w))
 		return "";
-
 	int result_c =
 		WideCharToMultiByte(CP_UTF8, 0, wres.data(),
 			static_cast<int>(wres.size()), NULL, 0, NULL, NULL);
 	if (result_c == 0)
 		return "";
-
 	std::string res(result_c, '\0');
 	if (!WideCharToMultiByte(CP_UTF8, 0, wres.data(),
 		static_cast<int>(wres.size()), res.data(), result_c,
 		0, 0))
 		return "";
-
 	return res;
 }
 
-static std::string utf8_to_cp1251(std::string const& utf8)
-{
-	if (!utf8.empty())
-	{
+static std::string utf8_to_cp1251(std::string const& utf8) {
+	if (!utf8.empty()) {
 		int wchlen = MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), utf8.size(), NULL, 0);
-		if (wchlen > 0 && wchlen != 0xFFFD)
-		{
+		if (wchlen > 0 && wchlen != 0xFFFD) {
 			std::vector<wchar_t> wbuf(wchlen);
 			MultiByteToWideChar(CP_UTF8, 0, utf8.c_str(), utf8.size(), &wbuf[0], wchlen);
 			std::vector<char> buf(wchlen);

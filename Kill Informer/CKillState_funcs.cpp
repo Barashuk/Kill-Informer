@@ -1,14 +1,16 @@
 #include "CKillState.h"
 #include <sampapi/CNetGame.h>
 #include <game_sa/ePedState.h>
+
+#include <libzippp/libzippp.h>
 #include "Console.hpp"
 #include "plugin.h"
 #include "CustomFont.cpp"
 #include "IconsFontAwesome6.h"
 #include "IconsFontAwesome6Brands.h"
 
-
 namespace R1 = sampapi::v037r1;
+using namespace libzippp;
 #pragma warning (disable: 26812)
 #pragma warning (disable: 6011)
 
@@ -17,13 +19,15 @@ void CKillState::Init() {
 	DistString = "{cText}Dist:{dist} m";
 	activeMenu = KeyHandler::AddHotKey(VK_F12, [this]() { OpenMenu(); });
 	pathDir = fs::current_path() / "Kill Informer";
-	bMenu = false;
 	InitFonts();
 	LoadSetting();
 	ParsePacks();
-	fileDialog.SetFileStyle(IGFD_FileStyleByTypeDir, nullptr, ImVec4(0.8f, 0.8f, 0.8f, 1.0f), ICON_IGFD_FOLDER);
+	fileDialog.SetFileStyle(IGFD_FileStyleByExtention, ".mp3", ImVec4(0.0f, 0.849f, 0.057f, 1.0f), ICON_FA_MUSIC);
+	fileDialog.SetFileStyle(IGFD_FileStyleByExtention, ".wav", ImVec4(0.0f, 0.849f, 0.057f, 1.0f), ICON_FA_MUSIC);
+	fileDialog.SetFileStyle(IGFD_FileStyleByExtention, ".ogg", ImVec4(0.0f, 0.849f, 0.057f, 1.0f), ICON_FA_MUSIC);
 	fileDialog.SetFileStyle(IGFD_FileStyleByTypeFile, nullptr, ImVec4(1.0f, 1.0f, 1.0f, 1.0f), ICON_IGFD_FILE);
-	fileDialog.SetLocales(LC_ALL, "Russian", "Russian");
+	fileDialog.SetFileStyle(IGFD_FileStyleByTypeDir, nullptr, ImVec4(0.8f, 0.8f, 0.8f, 1.0f), ICON_IGFD_FOLDER);
+
 }
 
 void CKillState::Release() {
@@ -129,6 +133,7 @@ void CKillState::DetectKillsAndDeaths() {
 
 void CKillState::Process() {
 	DetectKillsAndDeaths();
+	AutoPlayMusic();
 }
 
 void CKillState::DamageEvent(CPed* victim, CEntity* killer, eWeaponType weapon, int damage, ePedPieceTypes part, int direction) {
@@ -145,7 +150,7 @@ void CKillState::DamageEvent(CPed* victim, CEntity* killer, eWeaponType weapon, 
 }
 
 bool CKillState::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-	if (bMenu && msg == WM_KEYDOWN) {
+	if (bOpenMenu && msg == WM_KEYDOWN) {
 		if (wParam == 'T')
 			return false;
 		return true;
@@ -167,11 +172,56 @@ void CKillState::InitFonts() {
 			continue;
 		static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_16_FA, 0 };
 		ImFontConfig icons_config; icons_config.MergeMode = true; icons_config.PixelSnapH = true;
-		
-
 
 		io.Fonts->AddFontFromFileTTF(path.string().c_str(), 16.0f, &icons_config, icons_ranges);
 	}
 
 
+}
+
+void CKillState::AutoPlayMusic() {
+	if (musicHandles.empty())
+		return;
+	QWORD len, pos;
+	auto& stream = musicHandles.front().second;
+	auto status = BASS_ChannelIsActive(stream);
+	
+	if (status == BASS_ACTIVE_STOPPED) {
+		len = BASS_ChannelGetLength(stream, BASS_POS_BYTE);
+		pos = BASS_ChannelGetPosition(stream, BASS_POS_BYTE);
+		if (pos == 0) {
+			BASS_ChannelPlay(stream, false);
+		}
+		else if (pos == len) {
+			BASS_StreamFree(stream);
+			musicHandles.erase(musicHandles.begin());
+		}
+	}
+}
+
+void CKillState::AddToPlayMusic(string name, string pack_name, bool last_free) {
+	auto isPlayIter = find_if(musicHandles.begin(), musicHandles.end(), [&](const music_p& elemMusic) {
+		return elemMusic.first == name;
+		});
+	if (isPlayIter != musicHandles.end())
+		return;
+	if (!musicHandles.empty() && last_free) {
+		auto& stream = musicHandles.front().second;
+		BASS_StreamFree(stream);
+		musicHandles.clear();
+	}
+	auto path = pathDir / "Packs" / (pack_name + ".zip");
+	ZipArchive zf(path.string());
+	zf.open(ZipArchive::ReadOnly);
+	auto& entries = zf.getEntries();
+	auto iter = find_if(entries.begin(), entries.end(), [&](const ZipEntry& elem) {
+		return elem.getName() == "Sounds/" + name;
+		});	
+	HSTREAM stream = BASS_StreamCreateFile(true, iter->readAsBinary(), 0, iter->getSize(), 0);
+	auto error = BASS_ErrorGetCode();
+	if (error == BASS_OK) {
+		musicHandles.push_back(music_p(name, stream));
+	}
+	
+	zf.close();
 }

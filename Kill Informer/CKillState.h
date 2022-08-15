@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <bass.h>
 #include "FontsHandler.hpp"
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
 
@@ -12,8 +13,8 @@ using namespace std;
 
 struct stStat {
 private:
-	uint16_t value = 0;
-	vector <uint16_t> values;
+	uint32_t value = 0;
+	vector <uint32_t> values;
 public:
 	stStat() {
 		values.resize(100, 0);
@@ -55,12 +56,12 @@ struct stDamagePlayer {
 
 struct stElementEvent{
 public:
-	uint8_t			value;
+	int				value;
 	string			name,
 					sound;
 	ImVec4			color;
 public:
-	stElementEvent(uint8_t _val = 0, string _name = string(), string _sound = string(), ImVec4 _color = ImVec4(1, 1, 1, 1)) {
+	stElementEvent(int _val = 0, string _name = string(), string _sound = string(), ImVec4 _color = ImVec4(1, 1, 1, 1)) {
 		value = _val, name = _name, sound = _sound, color = _color;
 	}
 /*
@@ -81,7 +82,6 @@ public:
 	}
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(stElementEvent, value, name, sound , color);
 
 struct stPack {
 	string			Name;
@@ -93,9 +93,6 @@ struct stPack {
 					KillsEvents,
 					DeathsEvents,
 					AssistsEvents;
-					
-
-
 	vector <string>	SoundFiles;
 };
 
@@ -103,6 +100,8 @@ struct stSetting {
 	string			currentPack,
 					activeElementMenu;
 };
+
+using music_p = pair <string, HSTREAM>;
 
 class CKillState {
 private:
@@ -123,19 +122,26 @@ private:
 	ImGuiFileDialog				fileDialog;
 	string						lastPath;
 	int							elemMusic = -1;
+	vector <music_p>			musicHandles;
 
 
 
 
-
-	bool						bMenu;
+	bool						bOpenMenu = false,
+								bOpenMusicDialog = false;
 
 	void						DetectKillsAndDeaths();
+	void						PrepareKillString(CPed* killer, CPed* victim, CPed* assist);
+
+
 
 	void						InitFonts();
 
+	void						AddToPlayMusic(string name, string pack_name, bool last_free = false);
+	void						AutoPlayMusic();
 
-	void						PrepareKillString(CPed* killer, CPed *victim, CPed* assist);
+
+	
 	void						OpenMenu();
 	void						DrawStats();
 
@@ -145,8 +151,10 @@ private:
 	void						DrawPacks();
 	void						DrawHeader();
 	void						DrawFontsSetting();
-	void						DrawTable(string label, vector <stElementEvent> &events, vector<string> &music);
-	void						DrawDialog();
+	void						DrawTableEvents(string label, vector <stElementEvent> &events, vector<string> &music);
+
+	bool						DrawMusicDialog();
+	bool						DrawFileExplorer();
 
 	void						ParsePacks();
 	void						SavePacks();

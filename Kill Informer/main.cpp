@@ -6,6 +6,7 @@
 #include "game_sa\eEntityType.h"
 #include "game_sa\CWeapon.h"
 #include <CustomFont.cpp>
+#include <bass.h>
 
 
 
@@ -90,7 +91,7 @@ public:
 		ImGui_ImplWin32_Init(hMain);
 		ImGui_ImplDX9_Init(device);
 		hOrigProc = (WNDPROC)SetWindowLongA(hMain, GWL_WNDPROC, (LONG)WndProc);
-
+		BASS_Init(-1, 44100, 0, hMain, NULL);
 		/*rakhook::on_send_rpc += [](int& id, RakNet::BitStream*& bs, PacketPriority& priority, PacketReliability& reliability, char& ord_channel, bool& sh_timestamp) -> bool {		 
 			if (id == 115) {
 				bool bGiveOrTake;
