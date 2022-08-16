@@ -6,8 +6,9 @@
 #include <string>
 #include <map>
 #include <bass.h>
+#include <imgui.h>
+//#include <imfilebrowser.h>
 #include "FontsHandler.hpp"
-#include <ImGuiFileDialog/ImGuiFileDialog.h>
 
 using namespace std;
 
@@ -60,25 +61,14 @@ public:
 	string			name,
 					sound;
 	ImVec4			color;
+	bool			active;
 public:
-	stElementEvent(int _val = 0, string _name = string(), string _sound = string(), ImVec4 _color = ImVec4(1, 1, 1, 1)) {
-		value = _val, name = _name, sound = _sound, color = _color;
+	stElementEvent(int _val = 0, string _name = string(), string _sound = string(), ImVec4 _color = ImVec4(1, 1, 1, 1), bool _active = true) {
+		value = _val, name = _name, sound = _sound, color = _color, active = _active;
 	}
-/*
-	auto &GetValue() {
-		return value;
-	}
-	auto& GetName() {
-		return name;
-	}
-	auto& GetSound() {
-		return sound;
-	}
-	auto& GetColor() {
-		return color;
-	}*/
 	void Clear() {
 		value = 0, name.clear(), sound.clear(), color = ImVec4(1, 1, 1, 1);
+		active = true;
 	}
 };
 
@@ -119,12 +109,11 @@ private:
 								renderString;
 	stElementEvent				new_event_add;
 
-	ImGuiFileDialog				fileDialog;
 	string						lastPath;
 	int							elemMusic = -1;
 	vector <music_p>			musicHandles;
 
-
+	//ImGui::FileBrowser			fileDialog;
 
 
 	bool						bOpenMenu = false,

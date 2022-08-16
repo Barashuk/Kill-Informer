@@ -5,7 +5,6 @@
 #include <libzippp/libzippp.h>
 #include "Console.hpp"
 #include "plugin.h"
-#include "CustomFont.cpp"
 #include "IconsFontAwesome6.h"
 #include "IconsFontAwesome6Brands.h"
 
@@ -19,21 +18,18 @@ void CKillState::Init() {
 	DistString = "{cText}Dist:{dist} m";
 	activeMenu = KeyHandler::AddHotKey(VK_F12, [this]() { OpenMenu(); });
 	pathDir = fs::current_path() / "Kill Informer";
+	/*fileDialog.SetTitle(ICON_FA_MUSIC u8"Выберите звук");
+	fileDialog.SetTypeFilters({ ".ogg", ".mp3", ".wav"});*/
+
+
+
+
 	InitFonts();
 	LoadSetting();
 	ParsePacks();
-	fileDialog.SetFileStyle(IGFD_FileStyleByExtention, ".mp3", ImVec4(0.0f, 0.849f, 0.057f, 1.0f), ICON_FA_MUSIC);
-	fileDialog.SetFileStyle(IGFD_FileStyleByExtention, ".wav", ImVec4(0.0f, 0.849f, 0.057f, 1.0f), ICON_FA_MUSIC);
-	fileDialog.SetFileStyle(IGFD_FileStyleByExtention, ".ogg", ImVec4(0.0f, 0.849f, 0.057f, 1.0f), ICON_FA_MUSIC);
-	fileDialog.SetFileStyle(IGFD_FileStyleByTypeFile, nullptr, ImVec4(1.0f, 1.0f, 1.0f, 1.0f), ICON_IGFD_FILE);
-	fileDialog.SetFileStyle(IGFD_FileStyleByTypeDir, nullptr, ImVec4(0.8f, 0.8f, 0.8f, 1.0f), ICON_IGFD_FOLDER);
-
 }
 
 void CKillState::Release() {
-	if (fileDialog.IsOpened()) {
-		fileDialog.Close();
-	}
 	SavePacks();
 	SaveSetting();
 }
@@ -172,7 +168,6 @@ void CKillState::InitFonts() {
 			continue;
 		static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_16_FA, 0 };
 		ImFontConfig icons_config; icons_config.MergeMode = true; icons_config.PixelSnapH = true;
-
 		io.Fonts->AddFontFromFileTTF(path.string().c_str(), 16.0f, &icons_config, icons_ranges);
 	}
 
@@ -211,7 +206,7 @@ void CKillState::AddToPlayMusic(string name, string pack_name, bool last_free) {
 		musicHandles.clear();
 	}
 	auto path = pathDir / "Packs" / (pack_name + ".zip");
-	ZipArchive zf(path.string());
+	ZipArchive zf(path.u8string());
 	zf.open(ZipArchive::ReadOnly);
 	auto& entries = zf.getEntries();
 	auto iter = find_if(entries.begin(), entries.end(), [&](const ZipEntry& elem) {
@@ -222,6 +217,5 @@ void CKillState::AddToPlayMusic(string name, string pack_name, bool last_free) {
 	if (error == BASS_OK) {
 		musicHandles.push_back(music_p(name, stream));
 	}
-	
 	zf.close();
 }

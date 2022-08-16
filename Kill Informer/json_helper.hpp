@@ -4,16 +4,18 @@
 #include <nlohmann/json.hpp>
 #include <imgui.h>
 #include <string>
+#include <Windows.h>
 
 template <typename Type>
-static void from_json_with_check(const nlohmann::json& j, std::string section, Type value) {
+static void from_json_with_check(const nlohmann::json& j, const std::string &section, Type& value) {
 	if (j.contains(section)) {
-		j.at(section).get_to(value);
-		Console::Info("find", section.c_str());
+		j.at(section).get_to<Type>(value);
+/*		Console::Info("find %s", section.c_str());*/
 	}
+/*
 	else {
-		Console::Info("not find", section.c_str());
-	}
+		Console::Info("not find %s", section.c_str());
+	}*/
 }
 
 

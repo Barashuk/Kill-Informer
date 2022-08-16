@@ -7,9 +7,6 @@ using namespace libzippp;
 
 void to_json(nlohmann::json& j, const stSetting& v) {
 	j = json{
-		
-
-
 		{"currentPack", cp1251_to_utf8(v.currentPack)},
 		{"activeElementMenu", v.activeElementMenu}
 	};
@@ -28,14 +25,16 @@ void to_json(nlohmann::json& j, const stElementEvent& v) {
 		{"name", v.name},
 		{"sound", v.sound},
 		{"color", v.color},
+		{"active", v.active},
 	};
 }
 
 void from_json(const nlohmann::json& j, stElementEvent& v) {
-	j.at("value").get_to(v.value);
-	j.at("name").get_to(v.name);
-	j.at("sound").get_to(v.sound);
-	j.at("color").get_to(v.color);	
+	from_json_with_check(j, "value", v.value);
+	from_json_with_check(j, "name", v.name);
+	from_json_with_check(j, "sound", v.sound);
+	from_json_with_check(j, "color", v.color);
+	from_json_with_check(j, "active", v.active);
 }
 
 void CKillState::ParsePacks() {
@@ -59,37 +58,41 @@ void CKillState::ParsePacks() {
 				continue;
 			if (!entry_dir.path().has_filename())
 				continue;
+			
 			auto filename = entry_dir.path().filename().string();
 			auto ext = entry_dir.path().filename().extension().string();
 			ext = ext.substr(1, ext.length() - 1);
 			filename = filename.substr(0, filename.find_last_of('.'));
+			
 			if (ext != "zip")
 				continue;
+			
 			stPack pack;
 			pack.fontKills = FontsHandler::AddFont("Comic Sans MS", 14, FCR_BOLD | FCR_BORDER);
 			pack.fontDeaths = FontsHandler::AddFont("Comic Sans MS", 14, FCR_BOLD | FCR_BORDER);
 			pack.fontAssists = FontsHandler::AddFont("Comic Sans MS", 14, FCR_BOLD | FCR_BORDER);
 			pack.fontMessage = FontsHandler::AddFont("Comic Sans MS", 14, FCR_BOLD | FCR_BORDER);
-			ZipArchive zf(entry_dir.path().string());
+			ZipArchive zf(entry_dir.path().u8string());
 			zf.open(ZipArchive::ReadOnly);
 			auto& entries = zf.getEntries();
+			
 			auto it = find_if(entries.begin(), entries.end(), [](const ZipEntry& elem) {
 				return elem.getName() == "fonts.json";
 				});
 			if (it != entries.end()) {
-				string data = it->readAsText();
-				json fonts = json::parse(data);
+				json fonts = json::parse(it->readAsText());
 				fonts["Kills"].get_to(pack.fontKills);
 				fonts["Deaths"].get_to(pack.fontDeaths);
 				fonts["Assists"].get_to(pack.fontAssists);
 				fonts["Message"].get_to(pack.fontMessage);
 			}
 			it = find_if(entries.begin(), entries.end(), [](const ZipEntry& elem) {
+				
 				return elem.getName() == "events.json";
 				});
 			if (it != entries.end()) {
-				string data = it->readAsText();
-				json events = json::parse(data);
+				
+				json events = json::parse(it->readAsText());
 				events["Kills"].get_to(pack.KillsEvents);
 				events["Deaths"].get_to(pack.DeathsEvents);
 				events["Assists"].get_to(pack.AssistsEvents);
@@ -111,15 +114,12 @@ void CKillState::ParsePacks() {
 					continue;
 				pack.SoundFiles.push_back(filename);
 			}
-
 			zf.close();
 			pack.Name = filename;
 			Packs.push_back(pack);
-
 		}
 		if (Packs.empty())
 			return;
-
 		cfg.currentPack = Packs.back().Name;
 		std::sort(Packs.begin(), Packs.end(), [](const stPack& first, const stPack& second) {
 			return first.Name < second.Name;
@@ -133,9 +133,8 @@ void CKillState::ParsePacks() {
 void CKillState::SavePacks() {
 	try {
 		for (auto& pack : Packs) {
-
 			auto p = pathDir / "Packs" / (pack.Name + ".zip");
-			ZipArchive zf(p.string());
+			ZipArchive zf(p.u8string());
 			zf.open(ZipArchive::Write);
 			json fonts;
 			fonts["Kills"] = pack.fontKills;
@@ -144,7 +143,6 @@ void CKillState::SavePacks() {
 			fonts["Message"] = pack.fontMessage;
 			string dump_fonts = fonts.dump(4);
 			zf.addData("fonts.json", dump_fonts.data(), dump_fonts.length());
-
 			json events;
 			events.clear();
 			events["Kills"] = pack.KillsEvents;

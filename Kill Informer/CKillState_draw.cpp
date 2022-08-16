@@ -22,12 +22,10 @@ void CKillState::OpenMenu() {
 void CKillState::DrawPacks() {
 	static bool changeName = false;
 	auto packsList = [this](const string& label) {
-		
 		static string nameToChange, backName;
 		auto size = Packs.size();
 		string _label;
 		if (changeName) {
-			
 			_label = u8"Введите новое название" + label + "_change_name";
 			ImGui::PushItemWidth(200);
 			if (ImGui::InputText(_label.c_str(), &nameToChange,
@@ -154,7 +152,7 @@ void CKillState::DrawMenu() {
 	ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x * 0.5f, io.DisplaySize.y * 0.5f), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
 	ImGui::SetNextWindowSize({ 800, 600 }, ImGuiCond_FirstUseEver);
 	ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
-	if (ImGui::Begin("Kill Informer", &bOpenMenu, flags))  {
+	if (ImGui::Begin("Kill Informer", &bOpenMenu, flags)) {
 		activeMenu->Draw(u8"Активация меню");
 		if (Packs.empty()) {
 			ImGui::Text(u8"Не найден не один пак\nОтсканирууйте папку с паками");
@@ -166,7 +164,6 @@ void CKillState::DrawMenu() {
 		}
 		DrawPacks();
 		DrawHeader();
-
 		ImGui::End();
 	}
 }
@@ -196,7 +193,7 @@ void CKillState::DrawFontsSetting() {
 		current.second();
 	}
 	else {
-		ImGui::Text(u8"Выберите шрифт для редакрирования");
+		ImGui::Text(u8"Выберите шрифт для редактирования");
 	}
 	ImGui::EndGroup();
 
@@ -237,7 +234,6 @@ void CKillState::DrawTableEvents(string label, vector<stElementEvent>& events, v
 		string text;
 		ImVec2 size(25, 0);
 		ImGui::TableNextColumn();
-		
 		if (id > -1) {
 			text = "X" + label + "_del_" + to_string(id);
 			ImGui::PushItemWidth(size.x);
@@ -257,6 +253,12 @@ void CKillState::DrawTableEvents(string label, vector<stElementEvent>& events, v
 		}
 		ImGui::PopItemWidth();
 		return result;
+	};
+	auto columnInputBool = [](string label, bool& value) {
+		ImGui::TableNextColumn();
+		label = label + "_check";
+		ImGui::Checkbox(label.c_str(), &value);
+
 	};
 	auto columnInputText = [](string label, string& value) {
 		ImGui::TableNextColumn();
@@ -336,8 +338,9 @@ void CKillState::DrawTableEvents(string label, vector<stElementEvent>& events, v
 	
 	static auto flagsTable = ImGuiTableFlags_None | ImGuiTableFlags_Borders;
 	ImGui::Separator();
-	if (ImGui::BeginTable(label.c_str(), 4, flagsTable)) {
+	if (ImGui::BeginTable(label.c_str(), 5, flagsTable)) {
 		ImGui::TableSetupColumn(u8"Ид", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableSetupColumn(u8"ВКЛ", ImGuiTableColumnFlags_WidthFixed, 50 );
 		ImGui::TableSetupColumn(u8"Имя", ImGuiTableColumnFlags_WidthStretch);
 		ImGui::TableSetupColumn(u8"Звук", ImGuiTableColumnFlags_WidthStretch);
 		ImGui::TableSetupColumn(u8"Цвет", ImGuiTableColumnFlags_WidthStretch);
@@ -345,6 +348,8 @@ void CKillState::DrawTableEvents(string label, vector<stElementEvent>& events, v
 		ImGui::TableNextRow(ImGuiTableRowFlags_None, ImGui::GetTextLineHeightWithSpacing() * 1.5f);
 		//---------------------------
 		columnInputInt(label, new_event_add.value);
+		//---------------------------
+		columnInputBool(label, new_event_add.active);
 		//---------------------------
 		columnInputText(label, new_event_add.name);
 		//---------------------------
@@ -370,9 +375,10 @@ void CKillState::DrawTableEvents(string label, vector<stElementEvent>& events, v
 	}
 	else {
 		label = label + "_list";
-		if (ImGui::BeginTable(label.c_str(), 4, flagsTable)) {
+		if (ImGui::BeginTable(label.c_str(), 5, flagsTable)) {
 			static auto flagColumn = ImGuiTableColumnFlags_WidthStretch | ImGuiTableColumnFlags_NoReorder;
 			ImGui::TableSetupColumn(u8"Ид", flagColumn);
+			ImGui::TableSetupColumn(u8"ВКЛ", ImGuiTableColumnFlags_WidthFixed, 50);
 			ImGui::TableSetupColumn(u8"Имя", flagColumn);
 			ImGui::TableSetupColumn(u8"Звук", flagColumn);
 			ImGui::TableSetupColumn(u8"Цвет", flagColumn);
@@ -385,10 +391,13 @@ void CKillState::DrawTableEvents(string label, vector<stElementEvent>& events, v
 					events.erase(remove_if(events.begin(), events.end(), [&](const stElementEvent& _event) {
 						return _event.value == event.value &&
 							_event.name == event.name &&
-							_event.sound == event.sound /*&&
-							_event.color == event.color*/; }
+							_event.sound == event.sound &&
+							_event.active == event.active
+							; }
 					), events.end());
 				}
+				//---------------------------
+				columnInputBool(label + to_string(id), event.active);
 				//---------------------------
 				columnInputText(label + to_string(id), event.name);
 				//---------------------------
@@ -410,9 +419,10 @@ bool CKillState::DrawMusicDialog() {
 	if (ImGui::BeginPopupModal(u8"Cписок звуков", &bOpenMusicDialog, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize)) {
 		string b = string(ICON_FA_MUSIC) + u8" добавить звуки##dialog_open_menu";
 		if (ImGui::Button(b.c_str())) {
-			ImGuiFileDialogFlags flags = ImGuiFileDialogFlags_Modal | ImGuiFileDialogFlags_DontShowHiddenFiles | ImGuiFileDialogFlags_DisableCreateDirectoryButton;
+			/*ImGuiFileDialogFlags flags = ImGuiFileDialogFlags_Modal | ImGuiFileDialogFlags_DontShowHiddenFiles | ImGuiFileDialogFlags_DisableCreateDirectoryButton;
 			const char* filters = u8"Звуковые файлы{.mp3,.wav,.ogg}";
-			fileDialog.OpenDialog("SelectMusicFile", ICON_IGFD_FOLDER_OPEN u8" Выберите папку", filters, lastPath, 1, nullptr, flags);
+			fileDialog.OpenDialog("SelectMusicFile", ICON_IGFD_FOLDER_OPEN u8" Выберите папку", filters, lastPath, 1, nullptr, flags);*/
+			//fileDialog.Open();
 		}
 		if (DrawFileExplorer()) {
 			bOpenMusicDialog = false;
@@ -441,7 +451,7 @@ bool CKillState::DrawMusicDialog() {
 				return elem == delete_name;
 				}), music_list.end());
 			auto path = pathDir / "Packs" / (cfg.currentPack + ".zip");
-			ZipArchive zf(path.string());
+			ZipArchive zf(path.u8string());
 			zf.open(ZipArchive::Write);
 			zf.deleteEntry("Sounds/" + delete_name);
 			zf.close();
@@ -455,30 +465,35 @@ bool CKillState::DrawMusicDialog() {
 bool CKillState::DrawFileExplorer() {
 	bool result = false;
 	auto curPack = find_if(Packs.begin(), Packs.end(), [&](const stPack& elem) {return elem.Name == cfg.currentPack; });
-	if (fileDialog.Display("SelectMusicFile", ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize, ImVec2(700, 400))) {
+	/*fileDialog.Display();
+	if (fileDialog.HasSelected()) {
+		Console::Add(fileDialog.GetSelected().string());
+	}*/
+
+
+	/*if (fileDialog.Display("SelectMusicFile", ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize, ImVec2(700, 400))) {
 		if (fileDialog.IsOk()) {
 			lastPath = fileDialog.GetFilePathName();
 			fs::directory_entry file(lastPath);
 			auto filename = file.path().filename().string();
-			Console::Add(filename);
 			auto& music = curPack->SoundFiles;
 			if (find(music.begin(), music.end(), filename) == music.end()) {
 				auto p = pathDir / "Packs" / (cfg.currentPack + ".zip");
-				ZipArchive zf(p.string());
+				ZipArchive zf(p.u8string());
 				zf.open(ZipArchive::Write);
-				zf.addFile(string("Sounds/") + filename, file.path().string());
+				fs::path u8file = string("Sounds/") + filename;
+				zf.addFile(u8file.u8string(), file.path().u8string());
 				zf.close();
 				music.push_back(filename);
 				sort(music.begin(), music.end());
 				result = true;
-
 			}
 			else {
 				Console::Add("Текущий файл уже существует");
 			}
 		}
 		fileDialog.Close();
-	}
+	}*/
 	return result;
 }
 

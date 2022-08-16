@@ -5,9 +5,7 @@
 #include "game_sa\ePedPieceTypes.h"
 #include "game_sa\eEntityType.h"
 #include "game_sa\CWeapon.h"
-#include <CustomFont.cpp>
 #include <bass.h>
-
 
 
 namespace fs = std::filesystem;
@@ -68,16 +66,7 @@ public:
 		io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
 		char buffer[MAX_PATH];	
 		GetWindowsDirectory(buffer, MAX_PATH);
-
-		
-
 		io.Fonts->AddFontFromFileTTF(fs::path(fs::path(buffer) / "Fonts" / "trebucbd.ttf").string().c_str(), 16, NULL, io.Fonts->GetGlyphRangesCyrillic());
-		static const ImWchar icons_ranges[] = { ICON_MIN_IGFD, ICON_MAX_IGFD, 0 };
-		ImFontConfig icons_config; icons_config.MergeMode = true; icons_config.PixelSnapH = true;
-		io.Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_IGFD, 15.0f, &icons_config, icons_ranges);
-		
-
-
 		
 		Console::Init();		
 		rakhook::initialize();
