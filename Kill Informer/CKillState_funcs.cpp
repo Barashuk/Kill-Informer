@@ -1,5 +1,6 @@
 #include "CKillState.h"
 #include <sampapi/CNetGame.h>
+
 #include <game_sa/ePedState.h>
 
 #include <libzippp/libzippp.h>
@@ -18,18 +19,20 @@ void CKillState::Init() {
 	DistString = "{cText}Dist:{dist} m";
 	activeMenu = KeyHandler::AddHotKey(VK_F12, [this]() { OpenMenu(); });
 	pathDir = fs::current_path() / "Kill Informer";
-	/*fileDialog.SetTitle(ICON_FA_MUSIC u8"Выберите звук");
-	fileDialog.SetTypeFilters({ ".ogg", ".mp3", ".wav"});*/
-
-
-
-
+	fileDialog.SetFileStyle(IGFD_FileStyleByExtention, ".mp3", ImVec4(0.0f, 1.0f, 1.0f, 1.0f), ICON_FA_MUSIC);
+	fileDialog.SetFileStyle(IGFD_FileStyleByExtention, ".wav", ImVec4(0.0f, 1.0f, 1.0f, 1.0f), ICON_FA_MUSIC);
+	fileDialog.SetFileStyle(IGFD_FileStyleByExtention, ".ogg", ImVec4(0.0f, 1.0f, 1.0f, 1.1f), ICON_FA_MUSIC);
+	fileDialog.SetFileStyle(IGFD_FileStyleByTypeDir | IGFD_FileStyleByTypeLink, nullptr, ImVec4(0.8f, 0.8f, 0.8f, 0.8f), ICON_IGFD_FOLDER); // for all link dirs
+	fileDialog.SetFileStyle(IGFD_FileStyleByTypeFile | IGFD_FileStyleByTypeLink, nullptr, ImVec4(0.8f, 0.8f, 0.8f, 0.8f), ICON_IGFD_FILE); // for all link files
 	InitFonts();
 	LoadSetting();
 	ParsePacks();
 }
 
 void CKillState::Release() {
+	if (fileDialog.IsOpened()) {
+		fileDialog.Close();
+	}
 	SavePacks();
 	SaveSetting();
 }

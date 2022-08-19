@@ -86,16 +86,17 @@ void CKillState::ParsePacks() {
 				fonts["Assists"].get_to(pack.fontAssists);
 				fonts["Message"].get_to(pack.fontMessage);
 			}
-			it = find_if(entries.begin(), entries.end(), [](const ZipEntry& elem) {
-				
+			it = find_if(entries.begin(), entries.end(), [](const ZipEntry& elem) {				
 				return elem.getName() == "events.json";
 				});
 			if (it != entries.end()) {
-				
 				json events = json::parse(it->readAsText());
-				events["Kills"].get_to(pack.KillsEvents);
-				events["Deaths"].get_to(pack.DeathsEvents);
-				events["Assists"].get_to(pack.AssistsEvents);
+				from_json_with_check(events, "Kills", pack.KillsEvents);
+				from_json_with_check(events, "Deaths", pack.DeathsEvents);
+				from_json_with_check(events, "Assists", pack.AssistsEvents);
+				from_json_with_check(events, "Streaks", pack.StreaksEvents);
+				from_json_with_check(events, "Unique", pack.UniqueEvents);
+
 			}
 			for (auto file = entries.begin(); file != entries.end(); ++file) {
 				string s = "Sounds/";
@@ -148,6 +149,9 @@ void CKillState::SavePacks() {
 			events["Kills"] = pack.KillsEvents;
 			events["Deaths"] = pack.DeathsEvents;
 			events["Assists"] = pack.AssistsEvents;
+			events["Streaks"] = pack.StreaksEvents;
+			events["Unique"] = pack.UniqueEvents;
+
 			string dump_events = events.dump(4);
 			zf.addData("events.json", dump_events.data(), dump_events.length());
 			zf.close();

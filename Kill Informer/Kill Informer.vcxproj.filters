@@ -66,6 +66,12 @@
     <ClCompile Include="CKillState_funcs.cpp">
       <Filter>Kill State</Filter>
     </ClCompile>
+    <ClCompile Include="..\ImGuiFileDialog\CustomFont.cpp">
+      <Filter>ImGuiFileDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ImGuiFileDialog\ImGuiFileDialog\ImGuiFileDialog.cpp">
+      <Filter>ImGuiFileDialog</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="imgui">
@@ -104,8 +110,8 @@
     <Filter Include="Font Awesome">
       <UniqueIdentifier>{36b75611-2a66-4253-82c6-417876a24e22}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ImFileDialog">
-      <UniqueIdentifier>{1c9b4be6-1581-4918-bf2c-8709ba83ffa1}</UniqueIdentifier>
+    <Filter Include="ImGuiFileDialog">
+      <UniqueIdentifier>{2c5a7179-b18f-44d8-88bc-0f34e53fad66}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -244,6 +250,18 @@
     </ClInclude>
     <ClInclude Include="IconsFontAwesome6.h">
       <Filter>Font Awesome</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ImGuiFileDialog\CustomFont.h">
+      <Filter>ImGuiFileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ImGuiFileDialog\CustomImGuiFileDialogConfig.h">
+      <Filter>ImGuiFileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ImGuiFileDialog\ImGuiFileDialog\ImGuiFileDialog.h">
+      <Filter>ImGuiFileDialog</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ImGuiFileDialog\ImGuiFileDialog\ImGuiFileDialogConfig.h">
+      <Filter>ImGuiFileDialog</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

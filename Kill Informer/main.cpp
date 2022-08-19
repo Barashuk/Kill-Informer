@@ -1,12 +1,12 @@
 #include "main.h"
 #include <RakHook\rakhook.hpp>
 #include <RakNet\BitStream.h>
+#include <bass.h>
+#include <CustomFont.cpp>
 #include "game_sa\eWeaponType.h"
 #include "game_sa\ePedPieceTypes.h"
 #include "game_sa\eEntityType.h"
 #include "game_sa\CWeapon.h"
-#include <bass.h>
-
 
 namespace fs = std::filesystem;
 using namespace plugin;
@@ -51,8 +51,6 @@ public:
 		ImGui_ImplWin32_Shutdown();
 		ImGui::DestroyContext();
 		SetWindowLongA(hMain, GWL_WNDPROC, (LONG)hOrigProc);
-		
-
 	}
 	static void OnInit() {
 		IMGUI_CHECKVERSION();
@@ -66,37 +64,21 @@ public:
 		io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
 		char buffer[MAX_PATH];	
 		GetWindowsDirectory(buffer, MAX_PATH);
+		//auto loc = std::setlocale(LC_ALL, ".UTF8");
 		io.Fonts->AddFontFromFileTTF(fs::path(fs::path(buffer) / "Fonts" / "trebucbd.ttf").string().c_str(), 16, NULL, io.Fonts->GetGlyphRangesCyrillic());
-		
+		static const ImWchar icons_ranges[] = { ICON_MIN_IGFD, ICON_MAX_IGFD, 0 };
+		ImFontConfig icons_config; icons_config.MergeMode = true; icons_config.PixelSnapH = true;
+		io.Fonts->AddFontFromMemoryCompressedBase85TTF(FONT_ICON_BUFFER_NAME_IGFD, 15.0f, &icons_config, icons_ranges);
 		Console::Init();		
 		rakhook::initialize();
 		killstate = std::make_unique<CKillState>();
 		killstate->Init();
-
-
-
 		hMain = RsGlobal.ps->window;
 		device = reinterpret_cast<IDirect3DDevice9*>(RwD3D9GetCurrentD3DDevice());
 		ImGui_ImplWin32_Init(hMain);
 		ImGui_ImplDX9_Init(device);
 		hOrigProc = (WNDPROC)SetWindowLongA(hMain, GWL_WNDPROC, (LONG)WndProc);
 		BASS_Init(-1, 44100, 0, hMain, NULL);
-		/*rakhook::on_send_rpc += [](int& id, RakNet::BitStream*& bs, PacketPriority& priority, PacketReliability& reliability, char& ord_channel, bool& sh_timestamp) -> bool {		 
-			if (id == 115) {
-				bool bGiveOrTake;
-				UINT16 wPlayerID;
-				float damage_amount;
-				UINT32 dWeaponID;
-				UINT32 dBodypart;
-				bs->Read(bGiveOrTake);
-				bs->Read(wPlayerID);
-				bs->Read(damage_amount);
-				bs->Read(dWeaponID);
-				bs->Read(dBodypart);
-				killstate->SetGunDamage(dWeaponID, damage_amount);
-			}
-			return true;
-		};*/
 	}
 	static void OnDraw() {
 		static bool init = false;
@@ -133,7 +115,6 @@ public:
 		Events::d3dLostEvent += OnLost;
 		Events::d3dResetEvent += OnReset;
 		Events::drawingEvent += OnDraw;
-		//generateDamageEvent.install(0x73A530, urmem::get_func_addr(&DamageEvent));
 		generateDamageEvent += DamageEvent;
 	}
 	~CMain() {

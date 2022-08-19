@@ -13,6 +13,9 @@
 [submodule "RakHook"]
 	path = RakHook
 	url = https://github.com/imring/RakHook.git
-[submodule "imgui-filebrowser"]
-	path = imgui-filebrowser
-	url = https://github.com/AirGuanZ/imgui-filebrowser.git
+[submodule "ImGuiFileDialog"]
+	path = ImGuiFileDialog
+	url = https://github.com/aiekick/ImGuiFileDialog
+[submodule "magic_enum"]
+	path = magic_enum
+	url = https://github.com/Neargye/magic_enum.git

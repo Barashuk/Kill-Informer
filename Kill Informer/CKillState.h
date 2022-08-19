@@ -1,16 +1,28 @@
 #pragma once
-
-
 #include <game_sa/CPed.h>
 #include <vector>
 #include <string>
 #include <map>
 #include <bass.h>
 #include <imgui.h>
-//#include <imfilebrowser.h>
 #include "FontsHandler.hpp"
-
+#include <ImGuiFileDialog/ImGuiFileDialog.h>
+#include <magic_enum.hpp>
 using namespace std;
+
+enum class UniqueKillStatus {
+	PrepareToFight = 0, //При спавне
+	Humilition = 1 << 1, //Убийство с ножа
+	Team_Killer = 1 << 2, //Убийство игрока с таким же цветов, как у локального игрока
+	First_Blood = 1 << 3, //Первое убийство
+	Vengeance = 1 << 4, //Возмездие. Убийство игрока, который убил локального игрока
+	Penetration = 1 << 5, //Убийство игрока с любюго из четырех дилдаков в игре
+	Assshot = 1 << 7, //Убийство с последним выстрелем в жопу
+	Headshot = 1 << 8, // Убийство с последним выстрелом в голову
+	//Возможно добавлю в будущем
+	//шахид - убийство другого игрока взрывом, при этом смерть локального игрока от этого же взрыва
+	//PrepareToFight = 1 << 0,
+};
 
 struct stStat {
 private:
@@ -82,7 +94,9 @@ struct stPack {
 	vector <stElementEvent>
 					KillsEvents,
 					DeathsEvents,
-					AssistsEvents;
+					AssistsEvents,
+					StreaksEvents,
+					UniqueEvents;
 	vector <string>	SoundFiles;
 };
 
@@ -114,7 +128,7 @@ private:
 	vector <music_p>			musicHandles;
 
 	//ImGui::FileBrowser			fileDialog;
-
+	ImGuiFileDialog				fileDialog;
 
 	bool						bOpenMenu = false,
 								bOpenMusicDialog = false;

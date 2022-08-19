@@ -10,15 +10,8 @@ template <typename Type>
 static void from_json_with_check(const nlohmann::json& j, const std::string &section, Type& value) {
 	if (j.contains(section)) {
 		j.at(section).get_to<Type>(value);
-/*		Console::Info("find %s", section.c_str());*/
 	}
-/*
-	else {
-		Console::Info("not find %s", section.c_str());
-	}*/
 }
-
-
 
 static void to_json(nlohmann::json& j, const ImVec2& v) {
 	j = nlohmann::json{

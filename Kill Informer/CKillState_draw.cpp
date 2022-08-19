@@ -153,6 +153,7 @@ void CKillState::DrawMenu() {
 	ImGui::SetNextWindowSize({ 800, 600 }, ImGuiCond_FirstUseEver);
 	ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings;
 	if (ImGui::Begin("Kill Informer", &bOpenMenu, flags)) {
+		
 		activeMenu->Draw(u8"Активация меню");
 		if (Packs.empty()) {
 			ImGui::Text(u8"Не найден не один пак\nОтсканирууйте папку с паками");
@@ -225,6 +226,21 @@ void CKillState::DrawHeader() {
 	}
 	else if (cfg.activeElementMenu == u8"Убийства##tab_bar_kills") {
 		DrawTableEvents("##kill_table", curPack->KillsEvents, curPack->SoundFiles);
+	}
+	else if (cfg.activeElementMenu == u8"Серия убийств##tab_bar_killsstreaks") {
+		DrawTableEvents("##killstreaks_table", curPack->StreaksEvents, curPack->SoundFiles);
+	}
+	else if (cfg.activeElementMenu == u8"Смерти##tab_bar_deaths") {
+		DrawTableEvents("##deaths_table", curPack->DeathsEvents, curPack->SoundFiles);
+	}
+	else if (cfg.activeElementMenu == u8"Ассисты##tab_bar_assists") {
+		DrawTableEvents("##assist_table", curPack->AssistsEvents, curPack->SoundFiles);
+	}
+	else if (cfg.activeElementMenu == u8"События##tab_bar_events") {
+		DrawTableEvents("##uniqui_table", curPack->UniqueEvents, curPack->SoundFiles);
+	}
+	else if (cfg.activeElementMenu == u8"Прочее##tab_bar_other") {
+		
 	}
 }
 
@@ -335,7 +351,7 @@ void CKillState::DrawTableEvents(string label, vector<stElementEvent>& events, v
 		ImGui::PopItemWidth();
 		
 	};
-	
+	bool uTable = label == "##uniqui_table";
 	static auto flagsTable = ImGuiTableFlags_None | ImGuiTableFlags_Borders;
 	ImGui::Separator();
 	if (ImGui::BeginTable(label.c_str(), 5, flagsTable)) {
@@ -419,10 +435,10 @@ bool CKillState::DrawMusicDialog() {
 	if (ImGui::BeginPopupModal(u8"Cписок звуков", &bOpenMusicDialog, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize)) {
 		string b = string(ICON_FA_MUSIC) + u8" добавить звуки##dialog_open_menu";
 		if (ImGui::Button(b.c_str())) {
-			/*ImGuiFileDialogFlags flags = ImGuiFileDialogFlags_Modal | ImGuiFileDialogFlags_DontShowHiddenFiles | ImGuiFileDialogFlags_DisableCreateDirectoryButton;
+			ImGuiFileDialogFlags flags = ImGuiFileDialogFlags_Modal | ImGuiFileDialogFlags_DontShowHiddenFiles | ImGuiFileDialogFlags_DisableCreateDirectoryButton;
 			const char* filters = u8"Звуковые файлы{.mp3,.wav,.ogg}";
-			fileDialog.OpenDialog("SelectMusicFile", ICON_IGFD_FOLDER_OPEN u8" Выберите папку", filters, lastPath, 1, nullptr, flags);*/
-			//fileDialog.Open();
+			fileDialog.OpenDialog("SelectMusicFile", ICON_IGFD_FOLDER_OPEN u8" Выберите папку", filters, lastPath, 1, nullptr, flags);
+			
 		}
 		if (DrawFileExplorer()) {
 			bOpenMusicDialog = false;
@@ -465,20 +481,15 @@ bool CKillState::DrawMusicDialog() {
 bool CKillState::DrawFileExplorer() {
 	bool result = false;
 	auto curPack = find_if(Packs.begin(), Packs.end(), [&](const stPack& elem) {return elem.Name == cfg.currentPack; });
-	/*fileDialog.Display();
-	if (fileDialog.HasSelected()) {
-		Console::Add(fileDialog.GetSelected().string());
-	}*/
-
-
-	/*if (fileDialog.Display("SelectMusicFile", ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize, ImVec2(700, 400))) {
+	auto loc = std::setlocale(LC_ALL, ".UTF8");
+	if (fileDialog.Display("SelectMusicFile", ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize, ImVec2(700, 400))) {
 		if (fileDialog.IsOk()) {
 			lastPath = fileDialog.GetFilePathName();
 			fs::directory_entry file(lastPath);
 			auto filename = file.path().filename().string();
 			auto& music = curPack->SoundFiles;
 			if (find(music.begin(), music.end(), filename) == music.end()) {
-				auto p = pathDir / "Packs" / (cfg.currentPack + ".zip");
+				auto p = pathDir / "Packs" / (cp1251_to_utf8(cfg.currentPack) + ".zip");
 				ZipArchive zf(p.u8string());
 				zf.open(ZipArchive::Write);
 				fs::path u8file = string("Sounds/") + filename;
@@ -493,7 +504,8 @@ bool CKillState::DrawFileExplorer() {
 			}
 		}
 		fileDialog.Close();
-	}*/
+	}
+	loc = std::setlocale(LC_ALL, "");
 	return result;
 }
 
