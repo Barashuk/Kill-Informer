@@ -126,11 +126,12 @@
     <ClCompile Include="..\render\d3drender.cpp" />
     <ClCompile Include="..\render\sprite.cpp" />
     <ClCompile Include="..\render\texture.cpp" />
-    <ClCompile Include="CKillState_draw.cpp" />
+    <ClCompile Include="CKillState_menu.cpp" />
     <ClCompile Include="CKillState_funcs.cpp" />
     <ClCompile Include="CKillState_packs.cpp" />
     <ClCompile Include="FontsHandler.hpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="CKillState_draw.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ImGuiFileDialog\CustomFont.h" />

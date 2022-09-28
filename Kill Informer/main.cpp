@@ -7,6 +7,10 @@
 #include "game_sa\ePedPieceTypes.h"
 #include "game_sa\eEntityType.h"
 #include "game_sa\CWeapon.h"
+#include <sampapi\CInput.h>
+#include <sampapi\CChat.h>
+
+
 
 namespace fs = std::filesystem;
 using namespace plugin;
@@ -64,7 +68,6 @@ public:
 		io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
 		char buffer[MAX_PATH];	
 		GetWindowsDirectory(buffer, MAX_PATH);
-		//auto loc = std::setlocale(LC_ALL, ".UTF8");
 		io.Fonts->AddFontFromFileTTF(fs::path(fs::path(buffer) / "Fonts" / "trebucbd.ttf").string().c_str(), 16, NULL, io.Fonts->GetGlyphRangesCyrillic());
 		static const ImWchar icons_ranges[] = { ICON_MIN_IGFD, ICON_MAX_IGFD, 0 };
 		ImFontConfig icons_config; icons_config.MergeMode = true; icons_config.PixelSnapH = true;
@@ -85,7 +88,15 @@ public:
 		if (!init) {
 			OnInit();
 			init = true;
+			
 		}
+		IDirect3DStateBlock9* d3d9_state_block = NULL;
+		if (device->CreateStateBlock(D3DSBT_ALL, &d3d9_state_block) < 0)
+			return;
+		d3d9_state_block->Capture();
+		killstate->Draw();
+		d3d9_state_block->Apply();
+		d3d9_state_block->Release();
 		ImGui_ImplDX9_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
@@ -94,13 +105,6 @@ public:
 		ImGui::EndFrame();
 		ImGui::Render();
 		ImGui_ImplDX9_RenderDrawData(ImGui::GetDrawData());
-		IDirect3DStateBlock9* d3d9_state_block = NULL;
-		if (device->CreateStateBlock(D3DSBT_ALL, &d3d9_state_block) < 0)
-			return;
-		d3d9_state_block->Capture();
-		killstate->Draw();
-		d3d9_state_block->Apply();
-		d3d9_state_block->Release();
 		killstate->Process();
 	}
 	static void OnReset() {
@@ -121,7 +125,7 @@ public:
 		Events::d3dLostEvent -= OnLost;
 		Events::d3dResetEvent -= OnReset;
 		Events::drawingEvent -= OnDraw;
-		generateDamageEvent.AddAfter(DamageEvent);
+		generateDamageEvent -= DamageEvent;
 		OnRelease();
 	}
 } object;

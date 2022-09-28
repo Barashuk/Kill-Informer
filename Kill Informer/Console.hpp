@@ -18,11 +18,12 @@ using namespace std;
 #define JSON_FILENAME "console.json"
 
 enum OverlayPos {
+	Custom = -1,
 	TopLeft = 0,
 	TopRight,
 	BottomLeft,
 	BottomRight,
-	Custom
+	
 };
 
 enum StateDraw {
@@ -214,7 +215,7 @@ public:
 				if (ImGui::MenuItem("Top-left", NULL, cfg->posOverlay == 0)) cfg->posOverlay = OverlayPos::TopLeft;
 				if (ImGui::MenuItem("Top-right", NULL, cfg->posOverlay == 1)) cfg->posOverlay = OverlayPos::TopRight;
 				if (ImGui::MenuItem("Bottom-left", NULL, cfg->posOverlay == 2)) cfg->posOverlay = OverlayPos::BottomLeft;
-				if (ImGui::MenuItem("Bottom-right", NULL, cfg->posOverlay == 3)) cfg->posOverlay = OverlayPos::TopRight;
+				if (ImGui::MenuItem("Bottom-right", NULL, cfg->posOverlay == 3)) cfg->posOverlay = OverlayPos::BottomRight;
 				ImGui::EndPopup();
 			}
 		}

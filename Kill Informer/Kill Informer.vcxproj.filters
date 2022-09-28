@@ -60,7 +60,7 @@
     <ClCompile Include="CKillState_packs.cpp">
       <Filter>Kill State</Filter>
     </ClCompile>
-    <ClCompile Include="CKillState_draw.cpp">
+    <ClCompile Include="CKillState_menu.cpp">
       <Filter>Kill State</Filter>
     </ClCompile>
     <ClCompile Include="CKillState_funcs.cpp">
@@ -71,6 +71,9 @@
     </ClCompile>
     <ClCompile Include="..\ImGuiFileDialog\ImGuiFileDialog\ImGuiFileDialog.cpp">
       <Filter>ImGuiFileDialog</Filter>
+    </ClCompile>
+    <ClCompile Include="CKillState_draw.cpp">
+      <Filter>Kill State</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
